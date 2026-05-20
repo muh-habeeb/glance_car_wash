@@ -1,0 +1,3 @@
+{
+  "extends": "@glance_car_wash/config/tsconfig.base.json"
+}
