@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { env } from "../config/env.js";
+import { captureException } from "@sentry/node";
+import logger from "../utils/logger.js";
 
 /**
  * Global Error Handler Middleware.
@@ -14,11 +16,19 @@ export const errorHandler = (
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
 
-  // Log error locally on the server (stdout/stderr) for debugging
-  console.error(`[Server Error] ${err.name || "Error"}: ${message}`);
-  if (err.stack) {
-    console.error(err.stack);
-  }
+  // Use the Pino logger injected by pino-http, fallback to global logger
+  const log = req.log || logger;
+
+  // Log full error details securely on the server
+  log.error({
+    err,
+    endpoint: req.originalUrl,
+    body: req.body,
+    method: req.method,
+  }, `[Server Error] ${err.name || "Error"}: ${message}`);
+
+  // Send the error to GlitchTip / Sentry
+  captureException(err);
 
   res.status(statusCode).json({
     status: "error",

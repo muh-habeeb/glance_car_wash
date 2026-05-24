@@ -1,13 +1,18 @@
 import { Router } from "express";
-import { signInUser } from "../controllers/userController.js";
+import { loginUser, registerUser } from "../controllers/userController.js";
 
 const router = Router();
 
 // --- Auth Routes ---
 
-// @route   POST /users/signin
-// @desc    Authenticate user or register a new one and return JWT tokens
+// @route   POST /users/register
+// @desc    Register a new user
 // @access  Public
-router.post("/signin", signInUser);
+router.post("/register", registerUser);
+
+// @route   POST /users/login
+// @desc    Authenticate user and return short-lived secure JWT tokens
+// @access  Public
+router.post("/login", loginUser);
 
 export default router;

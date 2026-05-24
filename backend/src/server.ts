@@ -1,6 +1,5 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import { env } from "./config/env.js";
 import {
   securityHeaders,
   corsOptions,
@@ -8,9 +7,18 @@ import {
   customSecurityHeaders,
 } from "./middlewares/security.js";
 import { errorHandler } from "./middlewares/error.js";
+import { loggerMiddleware } from "./middlewares/loggerMiddleware.js";
 import userRoutes from "./routes/userRoutes.js";
+import { init as initSentry } from "@sentry/node";
+import { env } from "./config/env.js";
 
 const app = express();
+
+// Initialize Sentry for GlitchTip
+// Replace 'YOUR_GLITCHTIP_DSN' with the actual DSN from your dashboard
+initSentry({
+  dsn: env.SENTRY_DSN || "YOUR_GLITCHTIP_DSN",
+});
 
 // --- Server Configuration & Trust Proxy ---
 // Trust reverse proxy (e.g. Nginx, Cloudflare, Heroku) in production.
@@ -24,6 +32,9 @@ if (env.NODE_ENV === "production") {
 // 1. Hook up core security headers and custom headers
 app.use(securityHeaders);
 app.use(customSecurityHeaders);
+
+// 1.5. Request Logging (Must be before routes)
+app.use(loggerMiddleware);
 
 // 2. Setup CORS configurations
 app.use(corsOptions);
@@ -50,6 +61,11 @@ app.get("/health", (req, res) => {
     environment: env.NODE_ENV,
     timestamp: new Date().toISOString(),
   });
+});
+
+// Test Route: Error (for GlitchTip validation)
+app.get("/error", (req, res) => {
+  throw new Error("Test error for GlitchTip");
 });
 
 // 6. Global safe error handling middleware (must be registered last)

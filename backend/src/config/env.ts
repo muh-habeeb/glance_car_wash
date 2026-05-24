@@ -50,6 +50,7 @@ export const env = createEnv({
     JWT_SECRET: z.string().min(8),
     JWT_EXPIRES_IN: z.string().default("15m"),
     JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+    SENTRY_DSN: z.string().url().optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
