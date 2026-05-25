@@ -11,6 +11,7 @@ enum Role {
   USER
   STAFF
   ADMIN
+  SUPERADMIN
 }
 
 model User {
@@ -18,13 +19,45 @@ model User {
   name        String
   email       String   @unique
   password    String
-  phone       String?  // UAE phone number
+  phone       String   // International phone number
+  whatsapp    String?  // International WhatsApp number
   role        Role     @default(USER)
   is_active   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  accountDeletion AccountDeletion?
 
   @@index([role])
   @@index([is_active])
   @@index([role, is_active]) // Composite index for common "active staff" queries
+}
+
+enum DeletionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model AccountDeletion {
+  id           String         @id @default(uuid())
+  userId       String         @unique // A user can only have one active deletion request
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Snapshots for auditing after permanent deletion
+  name         String?
+  email        String?
+  phone        String?
+  
+  scheduledFor DateTime       // When the account should actually be deleted
+  status       DeletionStatus @default(PENDING)
+  
+  forceDelete  Boolean        @default(false)
+  deletedBy    String         @default("self")
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([status, scheduledFor]) // Useful for cron job queries
+  @@index([status, forceDelete])  // Useful for Admin Dashboard filtering
 }

@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 import pino from "pino";
 import { env } from "../config/env.js";
 

@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 import "dotenv/config";
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
@@ -50,6 +56,8 @@ export const env = createEnv({
     JWT_SECRET: z.string().min(8),
     JWT_EXPIRES_IN: z.string().default("15m"),
     JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+    SUPERADMIN_EMAIL: z.string().email(),
+    SUPERADMIN_PASSWORD: z.string().min(8),
     SENTRY_DSN: z.string().url().optional(),
     ENABLE_SENTRY: z.coerce.boolean().default(false),
   },

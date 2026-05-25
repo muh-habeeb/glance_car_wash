@@ -52,8 +52,10 @@ temp
 
 logs
 .agents
-
+fix-phone.ts
 .github
 .gemini
 GEMINI.md
 skills-lock.json
+
+add-copyright.ts

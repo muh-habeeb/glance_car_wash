@@ -51,7 +51,8 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  User: 'User'
+  User: 'User',
+  AccountDeletion: 'AccountDeletion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -76,6 +77,7 @@ export const UserScalarFieldEnum = {
   email: 'email',
   password: 'password',
   phone: 'phone',
+  whatsapp: 'whatsapp',
   role: 'role',
   is_active: 'is_active',
   createdAt: 'createdAt',
@@ -83,6 +85,23 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const AccountDeletionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  scheduledFor: 'scheduledFor',
+  status: 'status',
+  forceDelete: 'forceDelete',
+  deletedBy: 'deletedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountDeletionScalarFieldEnum = (typeof AccountDeletionScalarFieldEnum)[keyof typeof AccountDeletionScalarFieldEnum]
 
 
 export const SortOrder = {

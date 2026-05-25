@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";

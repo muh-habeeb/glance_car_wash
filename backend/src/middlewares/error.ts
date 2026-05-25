@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { env } from "../config/env.js";
 import { captureException } from "@sentry/node";

@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 /* eslint-disable no-console */
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -10,10 +16,19 @@ import {
 import { errorHandler } from "./middlewares/error.js";
 import { loggerMiddleware } from "./middlewares/loggerMiddleware.js";
 import userRoutes from "./routes/userRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import * as Sentry from "@sentry/node";
 import { env } from "./config/env.js";
+import { initDeletionSweeper } from "./services/deletionSweeper.js";
+import { initSuperAdmin } from "./services/superAdminSeeder.js";
 
 const app = express();
+
+// Initialize Cron Jobs
+initDeletionSweeper();
+
+// Initialize Super Admin (Upsert from env)
+initSuperAdmin();
 
 // Conditionally Initialize Sentry 
 if (env.ENABLE_SENTRY && env.SENTRY_DSN) {
@@ -55,6 +70,7 @@ app.use(cookieParser());
 
 // user authentication routes
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Test Route: Public
 app.get("/health", (req, res) => {
@@ -80,7 +96,7 @@ app.use(errorHandler);
 
 const PORT = env.PORT;
 const server = app.listen(PORT, () => {
-  
+
   console.log(`=============================================`);
   console.log(`  GLANCE CAR WASH - SECURE SERVER STARTED    `);
   console.log(`  Port:        ${PORT}                          `);

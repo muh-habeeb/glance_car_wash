@@ -12,7 +12,17 @@
 export const Role = {
   USER: 'USER',
   STAFF: 'STAFF',
-  ADMIN: 'ADMIN'
+  ADMIN: 'ADMIN',
+  SUPERADMIN: 'SUPERADMIN'
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const DeletionStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type DeletionStatus = (typeof DeletionStatus)[keyof typeof DeletionStatus]

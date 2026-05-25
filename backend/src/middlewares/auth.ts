@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 import { Request, Response, NextFunction } from "express";
 import { verifyToken, TokenPayload } from "../utils/jwt.js";
 
@@ -37,7 +43,7 @@ export const authenticated = (
 };
 
 /**
- * Authorization middleware to check if the user is an ADMIN.
+ * Authorization middleware to check if the user is an ADMIN or SUPERADMIN.
  * Must be used AFTER the `authenticated` middleware.
  */
 export const authorizedAsAdmin = (
@@ -45,9 +51,24 @@ export const authorizedAsAdmin = (
   res: Response,
   next: NextFunction
 ): void => {
-  if (req.user && req.user.role === "ADMIN") {
+  if (req.user && (req.user.role === "ADMIN" || req.user.role === "SUPERADMIN")) {
     next();
   } else {
     res.status(403).json({ success: false, message: "Permission denied. Admins only." });
+  }
+};
+
+/**
+ * Authorization middleware to check if the user is explicitly a SUPERADMIN.
+ */
+export const authorizedAsSuperAdmin = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (req.user && req.user.role === "SUPERADMIN") {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Permission denied. Super Admins only." });
   }
 };

@@ -1,0 +1,1 @@
+dont show loged admins derails in the table

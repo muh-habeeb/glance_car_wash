@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 import { pinoHttp } from "pino-http";
 import logger from "../utils/logger.js";
 import crypto from "crypto";

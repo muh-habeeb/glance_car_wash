@@ -1,3 +1,9 @@
+/**
+ * Copyright © GLANCE
+ * Author: habeeb
+ * Contact: muhhabeeb787+glanceautor@gmail.com
+ */
+
 import jwt from "jsonwebtoken";
 import { Response } from "express";
 import { env } from "../config/env.js";
@@ -5,7 +11,7 @@ import { env } from "../config/env.js";
 export interface TokenPayload {
   userId: string;
   role?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -13,7 +19,7 @@ export interface TokenPayload {
  */
 export const signAccessToken = (payload: TokenPayload, expiresIn?: string | number): string => {
   return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: (expiresIn || env.JWT_EXPIRES_IN) as any,
+    expiresIn: (expiresIn || env.JWT_EXPIRES_IN) as jwt.SignOptions["expiresIn"],
   });
 };
 
@@ -22,7 +28,7 @@ export const signAccessToken = (payload: TokenPayload, expiresIn?: string | numb
  */
 export const signRefreshToken = (payload: TokenPayload, expiresIn?: string | number): string => {
   return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: (expiresIn || env.JWT_REFRESH_EXPIRES_IN) as any,
+    expiresIn: (expiresIn || env.JWT_REFRESH_EXPIRES_IN) as jwt.SignOptions["expiresIn"],
   });
 };
 
@@ -54,6 +60,9 @@ export const verifyToken = (token: string): TokenPayload => {
   try {
     return jwt.verify(token, env.JWT_SECRET) as TokenPayload;
   } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Invalid or expired token: ${error.message}`, { cause: error });
+    }
     throw new Error("Invalid or expired token", { cause: error });
   }
 };
