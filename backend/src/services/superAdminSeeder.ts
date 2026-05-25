@@ -18,8 +18,8 @@ export const initSuperAdmin = async (): Promise<void> => {
   try {
     const { SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD } = env;
     
-    // Hash the password exactly as we do for normal users
-    const salt = await bcrypt.genSalt(10);
+    // Hash the password exactly as we do for normal users (12 rounds)
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(SUPERADMIN_PASSWORD, salt);
 
     // 1. Find any existing Super Admins in the database
@@ -28,20 +28,22 @@ export const initSuperAdmin = async (): Promise<void> => {
       orderBy: { createdAt: "asc" }
     });
 
+    let primaryAdmin: any = null;
+
     if (existingSuperAdmins.length > 0) {
-      // 2. We found at least one. Update the very first one to match the current .env perfectly.
-      const primaryAdmin = existingSuperAdmins[0];
+      primaryAdmin = existingSuperAdmins[0];
       
-      await prisma.user.update({
+      // Update primary admin details
+      primaryAdmin = await prisma.user.update({
         where: { id: primaryAdmin.id },
         data: {
           email: SUPERADMIN_EMAIL,
           password: hashedPassword,
-          is_active: true, // Ensure they are active
+          is_active: true,
         }
       });
 
-      // 3. Demote any accidental duplicate Super Admins back to regular ADMIN
+      // Demote any duplicate Super Admins back to regular ADMIN
       if (existingSuperAdmins.length > 1) {
         const duplicateIds = existingSuperAdmins.slice(1).map(u => u.id);
         await prisma.user.updateMany({
@@ -51,9 +53,8 @@ export const initSuperAdmin = async (): Promise<void> => {
         logger.warn(`Demoted ${duplicateIds.length} duplicate super admin(s) to standard ADMIN.`);
       }
     } else {
-      // 4. No Super Admin exists. Create one from scratch using .env values.
-      // Use upsert by email just in case the email is already used by a standard user
-      await prisma.user.upsert({
+      // No Super Admin exists. Create one using upsert/create.
+      primaryAdmin = await prisma.user.upsert({
         where: { email: SUPERADMIN_EMAIL },
         update: {
           password: hashedPassword,
@@ -71,7 +72,24 @@ export const initSuperAdmin = async (): Promise<void> => {
       });
     }
 
-    logger.info("Super Admin account seeded/verified successfully.");
+    // 2. Ensure Better Auth Account table has the credentials record so the user can login
+    const accountIdStr = `${primaryAdmin.id}_credential_account`;
+    await prisma.account.upsert({
+      where: { id: accountIdStr },
+      update: {
+        accountId: primaryAdmin.id, // Better Auth stores user ID as accountId for providerId: 'credential'
+        password: hashedPassword,
+      },
+      create: {
+        id: accountIdStr,
+        userId: primaryAdmin.id,
+        accountId: primaryAdmin.id,
+        providerId: "credential", // Better Auth uses 'credential' for standard email/password provider
+        password: hashedPassword,
+      }
+    });
+
+    logger.info("Super Admin account and Better Auth credentials seeded/verified successfully.");
   } catch (error) {
     logger.error(error, "Failed to seed Super Admin account:");
   }
