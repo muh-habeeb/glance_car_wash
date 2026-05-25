@@ -97,6 +97,7 @@ export const AccountDeletionScalarFieldEnum = {
   status: 'status',
   forceDelete: 'forceDelete',
   deletedBy: 'deletedBy',
+  deletedById: 'deletedById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -3,7 +3,7 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/client"
 }
 
@@ -15,22 +15,30 @@ enum Role {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  name        String
-  email       String   @unique
-  password    String
-  phone       String   // International phone number
-  whatsapp    String?  // International WhatsApp number
-  role        Role     @default(USER)
-  is_active   Boolean  @default(true)
+  id              String            @id @default(uuid())
+  name            String
+  email           String            @unique
+  password        String?
+  phone           String?            // International phone number
+  whatsapp        String?           // International WhatsApp number
+  role            Role              @default(USER)
+  is_active       Boolean           @default(true)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   
-  accountDeletion AccountDeletion?
+  accountDeletion AccountDeletion?  @relation("UserAccountDeletion")
+  adminDeletions  AccountDeletion[] @relation("AdminDeletions")
+
+  // Better Auth fields
+  emailVerified   Boolean           @default(false)
+  image           String?
+  sessions        Session[]
+  accounts        Account[]
 
   @@index([role])
   @@index([is_active])
-  @@index([role, is_active]) // Composite index for common "active staff" queries
+  @@index([role, is_active])
+  @@map("user")
 }
 
 enum DeletionStatus {
@@ -40,24 +48,73 @@ enum DeletionStatus {
 }
 
 model AccountDeletion {
-  id           String         @id @default(uuid())
-  userId       String         @unique // A user can only have one active deletion request
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String         @id @default(uuid())
+  userId         String         @unique
+  user           User           @relation("UserAccountDeletion", fields: [userId], references: [id], onDelete: Cascade)
   
-  // Snapshots for auditing after permanent deletion
-  name         String?
-  email        String?
-  phone        String?
+  name           String?
+  email          String?
+  phone          String?
   
-  scheduledFor DateTime       // When the account should actually be deleted
-  status       DeletionStatus @default(PENDING)
+  scheduledFor   DateTime
+  status         DeletionStatus @default(PENDING)
   
-  forceDelete  Boolean        @default(false)
-  deletedBy    String         @default("self")
+  forceDelete    Boolean        @default(false)
+  deletedBy      String         @default("self")
+  deletedById    String?
+  deletedByAdmin User?          @relation("AdminDeletions", fields: [deletedById], references: [id], onDelete: SetNull)
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  @@index([status, scheduledFor]) // Useful for cron job queries
-  @@index([status, forceDelete])  // Useful for Admin Dashboard filtering
+  @@index([status, scheduledFor])
+  @@index([status, forceDelete])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

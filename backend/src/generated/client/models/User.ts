@@ -223,6 +223,7 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   accountDeletion?: Prisma.XOR<Prisma.AccountDeletionNullableScalarRelationFilter, Prisma.AccountDeletionWhereInput> | null
+  adminDeletions?: Prisma.AccountDeletionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -237,6 +238,7 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   accountDeletion?: Prisma.AccountDeletionOrderByWithRelationInput
+  adminDeletions?: Prisma.AccountDeletionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -254,6 +256,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   accountDeletion?: Prisma.XOR<Prisma.AccountDeletionNullableScalarRelationFilter, Prisma.AccountDeletionWhereInput> | null
+  adminDeletions?: Prisma.AccountDeletionListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -300,6 +303,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   accountDeletion?: Prisma.AccountDeletionCreateNestedOneWithoutUserInput
+  adminDeletions?: Prisma.AccountDeletionCreateNestedManyWithoutDeletedByAdminInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -314,6 +318,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   accountDeletion?: Prisma.AccountDeletionUncheckedCreateNestedOneWithoutUserInput
+  adminDeletions?: Prisma.AccountDeletionUncheckedCreateNestedManyWithoutDeletedByAdminInput
 }
 
 export type UserUpdateInput = {
@@ -328,6 +333,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accountDeletion?: Prisma.AccountDeletionUpdateOneWithoutUserNestedInput
+  adminDeletions?: Prisma.AccountDeletionUpdateManyWithoutDeletedByAdminNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -342,6 +348,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accountDeletion?: Prisma.AccountDeletionUncheckedUpdateOneWithoutUserNestedInput
+  adminDeletions?: Prisma.AccountDeletionUncheckedUpdateManyWithoutDeletedByAdminNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -427,6 +434,11 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -453,12 +465,28 @@ export type UserCreateNestedOneWithoutAccountDeletionInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutAdminDeletionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAdminDeletionsInput, Prisma.UserUncheckedCreateWithoutAdminDeletionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAdminDeletionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneRequiredWithoutAccountDeletionNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAccountDeletionInput, Prisma.UserUncheckedCreateWithoutAccountDeletionInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountDeletionInput
   upsert?: Prisma.UserUpsertWithoutAccountDeletionInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountDeletionInput, Prisma.UserUpdateWithoutAccountDeletionInput>, Prisma.UserUncheckedUpdateWithoutAccountDeletionInput>
+}
+
+export type UserUpdateOneWithoutAdminDeletionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAdminDeletionsInput, Prisma.UserUncheckedCreateWithoutAdminDeletionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAdminDeletionsInput
+  upsert?: Prisma.UserUpsertWithoutAdminDeletionsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAdminDeletionsInput, Prisma.UserUpdateWithoutAdminDeletionsInput>, Prisma.UserUncheckedUpdateWithoutAdminDeletionsInput>
 }
 
 export type UserCreateWithoutAccountDeletionInput = {
@@ -472,6 +500,7 @@ export type UserCreateWithoutAccountDeletionInput = {
   is_active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  adminDeletions?: Prisma.AccountDeletionCreateNestedManyWithoutDeletedByAdminInput
 }
 
 export type UserUncheckedCreateWithoutAccountDeletionInput = {
@@ -485,11 +514,45 @@ export type UserUncheckedCreateWithoutAccountDeletionInput = {
   is_active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  adminDeletions?: Prisma.AccountDeletionUncheckedCreateNestedManyWithoutDeletedByAdminInput
 }
 
 export type UserCreateOrConnectWithoutAccountDeletionInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutAccountDeletionInput, Prisma.UserUncheckedCreateWithoutAccountDeletionInput>
+}
+
+export type UserCreateWithoutAdminDeletionsInput = {
+  id?: string
+  name: string
+  email: string
+  password: string
+  phone: string
+  whatsapp?: string | null
+  role?: $Enums.Role
+  is_active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accountDeletion?: Prisma.AccountDeletionCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAdminDeletionsInput = {
+  id?: string
+  name: string
+  email: string
+  password: string
+  phone: string
+  whatsapp?: string | null
+  role?: $Enums.Role
+  is_active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accountDeletion?: Prisma.AccountDeletionUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAdminDeletionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAdminDeletionsInput, Prisma.UserUncheckedCreateWithoutAdminDeletionsInput>
 }
 
 export type UserUpsertWithoutAccountDeletionInput = {
@@ -514,6 +577,7 @@ export type UserUpdateWithoutAccountDeletionInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adminDeletions?: Prisma.AccountDeletionUpdateManyWithoutDeletedByAdminNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountDeletionInput = {
@@ -527,8 +591,77 @@ export type UserUncheckedUpdateWithoutAccountDeletionInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adminDeletions?: Prisma.AccountDeletionUncheckedUpdateManyWithoutDeletedByAdminNestedInput
 }
 
+export type UserUpsertWithoutAdminDeletionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAdminDeletionsInput, Prisma.UserUncheckedUpdateWithoutAdminDeletionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAdminDeletionsInput, Prisma.UserUncheckedCreateWithoutAdminDeletionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAdminDeletionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAdminDeletionsInput, Prisma.UserUncheckedUpdateWithoutAdminDeletionsInput>
+}
+
+export type UserUpdateWithoutAdminDeletionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountDeletion?: Prisma.AccountDeletionUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAdminDeletionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountDeletion?: Prisma.AccountDeletionUncheckedUpdateOneWithoutUserNestedInput
+}
+
+
+/**
+ * Count Type UserCountOutputType
+ */
+
+export type UserCountOutputType = {
+  adminDeletions: number
+}
+
+export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  adminDeletions?: boolean | UserCountOutputTypeCountAdminDeletionsArgs
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserCountOutputType
+   */
+  select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAdminDeletionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AccountDeletionWhereInput
+}
 
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -543,6 +676,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   accountDeletion?: boolean | Prisma.User$accountDeletionArgs<ExtArgs>
+  adminDeletions?: boolean | Prisma.User$adminDeletionsArgs<ExtArgs>
+  _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -587,6 +722,8 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "password" | "phone" | "whatsapp" | "role" | "is_active" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accountDeletion?: boolean | Prisma.User$accountDeletionArgs<ExtArgs>
+  adminDeletions?: boolean | Prisma.User$adminDeletionsArgs<ExtArgs>
+  _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -595,6 +732,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     accountDeletion: Prisma.$AccountDeletionPayload<ExtArgs> | null
+    adminDeletions: Prisma.$AccountDeletionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1002,6 +1140,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   accountDeletion<T extends Prisma.User$accountDeletionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountDeletionArgs<ExtArgs>>): Prisma.Prisma__AccountDeletionClient<runtime.Types.Result.GetResult<Prisma.$AccountDeletionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  adminDeletions<T extends Prisma.User$adminDeletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$adminDeletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountDeletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1450,6 +1589,30 @@ export type User$accountDeletionArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.AccountDeletionInclude<ExtArgs> | null
   where?: Prisma.AccountDeletionWhereInput
+}
+
+/**
+ * User.adminDeletions
+ */
+export type User$adminDeletionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AccountDeletion
+   */
+  select?: Prisma.AccountDeletionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AccountDeletion
+   */
+  omit?: Prisma.AccountDeletionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountDeletionInclude<ExtArgs> | null
+  where?: Prisma.AccountDeletionWhereInput
+  orderBy?: Prisma.AccountDeletionOrderByWithRelationInput | Prisma.AccountDeletionOrderByWithRelationInput[]
+  cursor?: Prisma.AccountDeletionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AccountDeletionScalarFieldEnum | Prisma.AccountDeletionScalarFieldEnum[]
 }
 
 /**

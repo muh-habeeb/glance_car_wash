@@ -13,7 +13,7 @@ import bcrypt from "bcrypt";
 // --- Validation Schemas ---
 
 const adminUpdateUserSchema = z.object({
-  name: z.string().min(2).optional(),
+  name: z.string().trim().min(2).optional(),
   phone: z.string().regex(/^\+[1-9]\d{6,14}$/).optional(),
   whatsapp: z.string().regex(/^\+[1-9]\d{6,14}$/).optional(),
   role: z.enum(["USER", "STAFF", "ADMIN", "SUPERADMIN"]).optional(),
@@ -25,7 +25,7 @@ const forceDeleteSchema = z.object({
 });
 
 const forceDeleteManySchema = z.object({
-  userIds: z.array(z.string().uuid()).min(1, "At least one user ID is required"),
+  userIds: z.array(z.string().trim().uuid()).min(1, "At least one user ID is required"),
   adminPassword: z.string().min(1, "Admin password is required to perform a force delete"),
 });
 
@@ -45,10 +45,10 @@ export const getAllUsers = async (req: AuthenticatedRequest, res: Response): Pro
     const isActiveParam = req.query.is_active as string | undefined;
     const search = req.query.search as string | undefined;
 
-    // Build the Prisma where clause dynamically
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const whereClause: any = {
-      role: { not: "SUPERADMIN" } // Hide Super Admins from the dashboard
+      role: { not: "SUPERADMIN" }, // Hide Super Admins from the dashboard
+      id: { not: req.user?.id } // Don't show the logged-in admin's own details
     };
 
     if (role && role !== "SUPERADMIN") {
@@ -109,7 +109,7 @@ export const updateUserById = async (req: AuthenticatedRequest, res: Response): 
   try {
     const targetUserId = req.params.id as string;
     const validatedData = adminUpdateUserSchema.parse(req.body);
-    const activeUserRole = req.user?.role;
+    const activeUserRole = (req.user as any)?.role;
 
     // Strict Role Escalation Check
     if (validatedData.role === "ADMIN" || validatedData.role === "SUPERADMIN") {
@@ -162,7 +162,7 @@ export const updateUserById = async (req: AuthenticatedRequest, res: Response): 
  */
 export const deleteUserById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const adminId = req.user?.userId;
+    const adminId = req.user?.id;
     const targetUserId = req.params.id as string;
 
     if (!adminId) {
@@ -174,7 +174,7 @@ export const deleteUserById = async (req: AuthenticatedRequest, res: Response): 
     const { adminPassword } = validatedData;
 
     const adminUser = await prisma.user.findUnique({ where: { id: adminId } });
-    if (!adminUser || !(await bcrypt.compare(adminPassword, adminUser.password))) {
+    if (!adminUser || !adminUser.password || !(await bcrypt.compare(adminPassword, adminUser.password))) {
       res.status(401).json({ success: false, message: "Incorrect admin password. Force delete aborted." });
       return;
     }
@@ -204,6 +204,7 @@ export const deleteUserById = async (req: AuthenticatedRequest, res: Response): 
           phone: targetUser.phone,
           forceDelete: true,
           deletedBy: adminUser.name,
+          deletedById: adminUser.id,
         },
         create: {
           userId: targetUserId,
@@ -214,6 +215,7 @@ export const deleteUserById = async (req: AuthenticatedRequest, res: Response): 
           phone: targetUser.phone,
           forceDelete: true,
           deletedBy: adminUser.name,
+          deletedById: adminUser.id,
         }
       });
     });
@@ -241,7 +243,7 @@ export const deleteUserById = async (req: AuthenticatedRequest, res: Response): 
  */
 export const deleteManyById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const adminId = req.user?.userId;
+    const adminId = req.user?.id;
 
     if (!adminId) {
       res.status(401).json({ success: false, message: "Unauthorized" });
@@ -254,7 +256,7 @@ export const deleteManyById = async (req: AuthenticatedRequest, res: Response): 
 
     // 2. Authenticate Admin Password
     const adminUser = await prisma.user.findUnique({ where: { id: adminId } });
-    if (!adminUser || !(await bcrypt.compare(adminPassword, adminUser.password))) {
+    if (!adminUser || !adminUser.password || !(await bcrypt.compare(adminPassword, adminUser.password))) {
       res.status(401).json({ success: false, message: "Incorrect admin password. Force delete aborted." });
       return;
     }
@@ -292,6 +294,7 @@ export const deleteManyById = async (req: AuthenticatedRequest, res: Response): 
             phone: targetUser.phone,
             forceDelete: true,
             deletedBy: adminUser.name,
+            deletedById: adminUser.id,
           },
           create: {
             userId: targetUser.id,
@@ -302,6 +305,7 @@ export const deleteManyById = async (req: AuthenticatedRequest, res: Response): 
             phone: targetUser.phone,
             forceDelete: true,
             deletedBy: adminUser.name,
+            deletedById: adminUser.id,
           }
         });
       }
@@ -358,6 +362,14 @@ export const getAllDeletedUsers = async (req: AuthenticatedRequest, res: Respons
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
+        include: {
+          deletedByAdmin: {
+            select: {
+              name: true,
+              email: true,
+            }
+          }
+        }
       })
     ]);
 
@@ -383,7 +395,7 @@ export const getAllDeletedUsers = async (req: AuthenticatedRequest, res: Respons
  */
 export const restoreDeletedUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const adminId = req.user?.userId;
+    const adminId = req.user?.id;
     const targetUserId = req.params.id as string;
 
     if (!adminId) {
@@ -396,7 +408,7 @@ export const restoreDeletedUser = async (req: AuthenticatedRequest, res: Respons
 
     // Verify Admin Password
     const adminUser = await prisma.user.findUnique({ where: { id: adminId } });
-    if (!adminUser || !(await bcrypt.compare(adminPassword, adminUser.password))) {
+    if (!adminUser || !adminUser.password || !(await bcrypt.compare(adminPassword, adminUser.password))) {
       res.status(401).json({ success: false, message: "Incorrect admin password. Restoration aborted." });
       return;
     }

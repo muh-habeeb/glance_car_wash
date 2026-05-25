@@ -60,6 +60,14 @@ export const env = createEnv({
     SUPERADMIN_PASSWORD: z.string().min(8),
     SENTRY_DSN: z.string().url().optional(),
     ENABLE_SENTRY: z.coerce.boolean().default(false),
+    
+    // Better Auth
+    BETTER_AUTH_URL: z.string().url().default("http://localhost:3500"),
+    BETTER_AUTH_SECRET: z.string().min(8).default("development_secret_only"),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    FACEBOOK_CLIENT_ID: z.string().optional(),
+    FACEBOOK_CLIENT_SECRET: z.string().optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

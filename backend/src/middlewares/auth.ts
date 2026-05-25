@@ -5,40 +5,41 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import { verifyToken, TokenPayload } from "../utils/jwt.js";
+import { auth } from "../lib/auth.js";
+import { fromNodeHeaders } from "better-auth/node";
+import type { User, Session } from "better-auth";
 
 // Extend express Request definition locally
 export interface AuthenticatedRequest extends Request {
-  user?: TokenPayload;
+  user?: User;
+  session?: Session;
 }
 
 /**
  * Authentication middleware to verify access tokens.
- * Checks for token in HTTP-only cookies or standard Authorization header.
+ * Checks the Better Auth session natively.
  */
-export const authenticated = (
+export const authenticated = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
-    let token = req.cookies?.accessToken;
+    const sessionContext = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
 
-    if (!token && req.headers.authorization?.startsWith("Bearer ")) {
-      token = req.headers.authorization.split(" ")[1];
-    }
-
-    if (!token) {
-      res.status(401).json({ success:false, message: "Authentication required" }); 
+    if (!sessionContext) {
+      res.status(401).json({ success: false, message: "Authentication required" });
       return;
     }
 
-    const decoded = verifyToken(token);
-    req.user = decoded;
+    req.user = sessionContext.user as User;
+    req.session = sessionContext.session as Session;
     next();
   } catch (error) {
     req.log?.error(error);
-    res.status(401).json({ success:false, message: "Invalid or expired session token" });
+    res.status(401).json({ success: false, message: "Invalid or expired session token" });
   }
 };
 
@@ -51,7 +52,10 @@ export const authorizedAsAdmin = (
   res: Response,
   next: NextFunction
 ): void => {
-  if (req.user && (req.user.role === "ADMIN" || req.user.role === "SUPERADMIN")) {
+  // role is defined as string in User via additionalFields
+  // Using type assertion since BetterAuth User type might not strictly type custom fields by default
+  const userRole = (req.user as any)?.role;
+  if (req.user && (userRole === "ADMIN" || userRole === "SUPERADMIN")) {
     next();
   } else {
     res.status(403).json({ success: false, message: "Permission denied. Admins only." });
@@ -66,7 +70,8 @@ export const authorizedAsSuperAdmin = (
   res: Response,
   next: NextFunction
 ): void => {
-  if (req.user && req.user.role === "SUPERADMIN") {
+  const userRole = (req.user as any)?.role;
+  if (req.user && userRole === "SUPERADMIN") {
     next();
   } else {
     res.status(403).json({ success: false, message: "Permission denied. Super Admins only." });

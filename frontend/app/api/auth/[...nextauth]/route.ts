@@ -10,6 +10,7 @@ const handler = NextAuth({
         email: { label: "Email", type: "email", placeholder: "you@example.com" },
         password: { label: "Password", type: "password" },
         phone: { label: "Phone (UAE)", type: "text", placeholder: "0501234567" },
+        whatsapp: { label: "WhatsApp (Optional)", type: "text", placeholder: "+1234567890" },
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
@@ -27,6 +28,7 @@ const handler = NextAuth({
               email: credentials.email,
               password: credentials.password,
               phone: credentials.phone,
+              whatsapp: credentials.whatsapp,
             }),
           });
 
@@ -57,6 +59,7 @@ const handler = NextAuth({
         token.id = user.id;
         token.role = (user as any).role;
         token.phone = (user as any).phone;
+        token.whatsapp = (user as any).whatsapp;
       }
       return token;
     },
@@ -65,6 +68,7 @@ const handler = NextAuth({
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).phone = token.phone;
+        (session.user as any).whatsapp = token.whatsapp;
       }
       return session;
     },

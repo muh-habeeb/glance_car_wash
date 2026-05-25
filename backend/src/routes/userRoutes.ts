@@ -5,21 +5,19 @@
  */
 
 import { Router } from "express";
-import { loginUser, registerUser, logoutUser, getUserProfile ,updateUser, refreshToken, deleteUser} from "../controllers/userController.js";
+import { getUserProfile, updateUser, deleteUser } from "../controllers/userController.js";
 import { authenticated } from "../middlewares/auth.js";
 
 const router = Router();
 
-// --- Auth Routes ---
-
-// @route   POST /users/register
-// @desc    Register a new user
-// @access  Public
-router.route("/").post(registerUser).get(authenticated,getUserProfile).patch(authenticated, updateUser).delete(authenticated, deleteUser);
-
-router.post("/login", loginUser);
-router.post("/logout", logoutUser);
-router.post("/refresh", refreshToken);
-
+// --- User Profile Routes ---
+// @route   GET /users/profile (Get Profile)
+// @route   PATCH /users/profile (Update Profile)
+// @route   DELETE /users/profile (Soft Delete Profile)
+// @access  Private
+router.route("/profile")
+  .get(authenticated, getUserProfile)
+  .patch(authenticated, updateUser)
+  .delete(authenticated, deleteUser);
 
 export default router;

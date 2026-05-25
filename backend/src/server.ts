@@ -15,12 +15,16 @@ import {
 } from "./middlewares/security.js";
 import { errorHandler } from "./middlewares/error.js";
 import { loggerMiddleware } from "./middlewares/loggerMiddleware.js";
+import { env } from "./config/env.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import * as Sentry from "@sentry/node";
-import { env } from "./config/env.js";
 import { initDeletionSweeper } from "./services/deletionSweeper.js";
+import { auth } from "./lib/auth.js";
+import { toNodeHandler } from "better-auth/node";
 import { initSuperAdmin } from "./services/superAdminSeeder.js";
+
+
 
 const app = express();
 
@@ -31,10 +35,12 @@ initDeletionSweeper();
 initSuperAdmin();
 
 // Conditionally Initialize Sentry 
-if (env.ENABLE_SENTRY && env.SENTRY_DSN) {
+if (env.ENABLE_SENTRY==true && env.SENTRY_DSN) {
   Sentry.init({
     dsn: env.SENTRY_DSN,
   });
+}else{
+  console.log("sentry logging disabled")
 }
 
 // --- Server Configuration & Trust Proxy ---
@@ -69,8 +75,12 @@ app.use(cookieParser());
 // --- API Routes ---
 
 // user authentication routes
+app.use("/api/auth", toNodeHandler(auth));
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+
+// Better Auth wildcard route
+
 
 // Test Route: Public
 app.get("/health", (req, res) => {
@@ -85,6 +95,14 @@ app.get("/health", (req, res) => {
 // app.get("/error", (req, res) => {
 //   throw new Error("Test error for GlitchTip");
 // });
+
+// 404 Route Not Found Handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
 // 6. Sentry Express Error Handler (MUST be before your custom error handlers)
 if (env.ENABLE_SENTRY) {
