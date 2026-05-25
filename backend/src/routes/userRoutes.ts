@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { loginUser, registerUser } from "../controllers/userController.js";
+import { loginUser, registerUser, logoutUser, getUserProfile ,updateUser, refreshToken} from "../controllers/userController.js";
+import { authenticated } from "../middlewares/auth.js";
 
 const router = Router();
 
@@ -8,11 +9,11 @@ const router = Router();
 // @route   POST /users/register
 // @desc    Register a new user
 // @access  Public
-router.post("/register", registerUser);
+router.route("/").post(registerUser).get(authenticated,getUserProfile).put(authenticated, updateUser);
 
-// @route   POST /users/login
-// @desc    Authenticate user and return short-lived secure JWT tokens
-// @access  Public
 router.post("/login", loginUser);
+router.post("/logout", logoutUser);
+router.post("/refresh", refreshToken);
+
 
 export default router;

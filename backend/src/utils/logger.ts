@@ -16,16 +16,30 @@ const logger = pino({
     paths: redactPaths,
     censor: "[REDACTED]",
   },
-  ...(env.NODE_ENV !== "production" && {
-    transport: {
-      target: "pino-pretty",
-      options: {
-        colorize: true,
-        translateTime: "SYS:standard",
-        ignore: "pid,hostname",
+  transport: {
+    targets: [
+      // 1. Terminal Output (Basic, Clean, No massive stack traces)
+      {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          translateTime: "SYS:standard",
+          // We ignore these massive object properties so they don't dump onto the terminal
+          ignore: "pid,hostname,req,res,err,responseTime,ip,userId,endpoint,method",
+        },
+        level: env.NODE_ENV === "production" ? "info" : "debug",
       },
-    },
-  }),
+      // 2. File Output (Full raw JSON logs, keeps all request data and stack traces)
+      {
+        target: "pino/file",
+        options: {
+          destination: "./logs/app.log", // Creates a logs folder automatically
+          mkdir: true,
+        },
+        level: "info",
+      },
+    ],
+  },
 });
 
 export default logger;

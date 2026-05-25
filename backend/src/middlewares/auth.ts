@@ -10,7 +10,7 @@ export interface AuthenticatedRequest extends Request {
  * Authentication middleware to verify access tokens.
  * Checks for token in HTTP-only cookies or standard Authorization header.
  */
-export const authenticate = (
+export const authenticated = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -23,7 +23,7 @@ export const authenticate = (
     }
 
     if (!token) {
-      res.status(418).json({ message: "Authentication required" }); // using 418 or 401. Let's use 401 Unauthorized as standard!
+      res.status(401).json({ success:false, message: "Authentication required" }); 
       return;
     }
 
@@ -31,6 +31,23 @@ export const authenticate = (
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid or expired session token" });
+    req.log?.error(error);
+    res.status(401).json({ success:false, message: "Invalid or expired session token" });
+  }
+};
+
+/**
+ * Authorization middleware to check if the user is an ADMIN.
+ * Must be used AFTER the `authenticated` middleware.
+ */
+export const authorizedAsAdmin = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (req.user && req.user.role === "ADMIN") {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Permission denied. Admins only." });
   }
 };

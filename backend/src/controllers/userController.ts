@@ -1,15 +1,16 @@
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../middlewares/auth.js";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { prisma } from "../config/prisma.js";
-import { signAccessToken, signRefreshToken, setAuthCookies } from "../utils/jwt.js";
+import { signAccessToken, signRefreshToken, setAuthCookies, verifyToken } from "../utils/jwt.js";
 
 // --- Validation Schemas ---
 
 const userAuthSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email format"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(6, "Password must be at least 8 characters"),
   phone: z.string()
     .regex(/^(?:\+971|00971|0)(?:50|52|54|55|56|58)\d{7}$/, "Invalid UAE phone number format")
     .optional(),
@@ -99,7 +100,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const payload = { userId: user.id, email: user.email, role: user.role };
 
     // Using short-lived token logic via utility functions
-    const accessToken = signAccessToken(payload, '5m'); // 5 minutes TTL
+    const accessToken = signAccessToken(payload, '7m'); // 7 minutes TTL
     const refreshToken = signRefreshToken(payload, '7d');
 
     // Securely set the tokens in HTTP-only cookies
@@ -127,5 +128,189 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
     req.log?.error(error);
     res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+/**
+ * Handle User Logout.
+ * Clears the secure JWT cookies.
+ */
+export const logoutUser = async (req: Request, res: Response): Promise<void> => {
+  res.clearCookie("accessToken", { path: "/" });
+  res.clearCookie("refreshToken", { path: "/" });
+  res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+/**
+ * Get User Profile.
+ * Returns the currently authenticated user's details.
+ */
+export const getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        is_active: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    req.log?.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+const updateProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").optional(),
+  phone: z.string().regex(/^(?:\+971|00971|0)(?:50|52|54|55|56|58)\d{7}$/, "Invalid UAE phone number format").optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  confirmPassword: z.string().optional(),
+  currentPassword: z.string().optional(),
+}).refine((data) => {
+  if (data.password) {
+    return data.password === data.confirmPassword;
+  }
+  return true;
+}, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+export const updateUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    // Check for forbidden fields directly in request body to throw explicit 403
+    const forbiddenFields = ["role", "is_active", "id", "email"];
+    for (const field of forbiddenFields) {
+      if (req.body[field] !== undefined) {
+        res.status(403).json({ success: false, message: `Permission denied. You cannot update the '${field}' field.` });
+        return;
+      }
+    }
+
+    const validatedData = updateProfileSchema.parse(req.body);
+    const { name, phone, password, currentPassword } = validatedData;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    let updatedPassword = user.password;
+
+    // Handle password update logic safely
+    if (password) {
+      if (!currentPassword) {
+        res.status(400).json({ success: false, message: "Current password is required to set a new password." });
+        return;
+      }
+      
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        res.status(401).json({ success: false, message: "Incorrect current password." });
+        return;
+      }
+
+      const isSamePassword = await bcrypt.compare(password, user.password);
+      if (isSamePassword) {
+        res.status(400).json({ success: false, message: "Please choose a new password. The new password cannot be the same as the old password." });
+        return;
+      }
+
+      updatedPassword = await bcrypt.hash(password, 12);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: name || user.name,
+        phone: phone || user.phone,
+        password: updatedPassword,
+      },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        // role:true,
+        is_active: true,
+      },
+    });
+
+    res.status(200).json({ success: true, message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: error.issues.map((err: z.ZodIssue) => ({ path: err.path.join("."), message: err.message }))
+      });
+      return;
+    }
+    req.log?.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+/**
+ * Handle Token Refresh.
+ * Reads the secure refresh token cookie and issues a new access token.
+ */
+export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = req.cookies?.refreshToken;
+    
+    if (!token) {
+      res.status(401).json({ success: false, message: "No refresh token provided. Please log in again." });
+      return;
+    }
+
+    // Verify the refresh token
+    const decoded = verifyToken(token) as { userId: string };
+    
+    // Check if user still exists and is active
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    
+    if (!user || !user.is_active) {
+      res.status(401).json({ success: false, message: "Session invalid or account disabled" });
+      return;
+    }
+
+    const payload = { userId: user.id, email: user.email, role: user.role };
+    
+    // Issue a fresh access token (7 minutes)
+    const newAccessToken = signAccessToken(payload, '7m');
+    // Issue a fresh refresh token (7 days)
+    const newRefreshToken = signRefreshToken(payload, '7d');
+
+    setAuthCookies(res, newAccessToken, newRefreshToken);
+
+    res.status(200).json({ success: true, message: "Token refreshed successfully" });
+  } catch (error) {
+    // If the refresh token is expired or invalid, force logout
+    res.clearCookie("accessToken", { path: "/" });
+    res.clearCookie("refreshToken", { path: "/" });
+    res.status(401).json({ success: false, message: "Refresh token expired. Please log in again." });
   }
 };

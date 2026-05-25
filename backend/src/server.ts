@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import express from "express";
 import cookieParser from "cookie-parser";
 import {
@@ -9,16 +10,17 @@ import {
 import { errorHandler } from "./middlewares/error.js";
 import { loggerMiddleware } from "./middlewares/loggerMiddleware.js";
 import userRoutes from "./routes/userRoutes.js";
-import { init as initSentry } from "@sentry/node";
+import * as Sentry from "@sentry/node";
 import { env } from "./config/env.js";
 
 const app = express();
 
-// Initialize Sentry for GlitchTip
-// Replace 'YOUR_GLITCHTIP_DSN' with the actual DSN from your dashboard
-initSentry({
-  dsn: env.SENTRY_DSN || "YOUR_GLITCHTIP_DSN",
-});
+// Conditionally Initialize Sentry 
+if (env.ENABLE_SENTRY && env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: env.SENTRY_DSN,
+  });
+}
 
 // --- Server Configuration & Trust Proxy ---
 // Trust reverse proxy (e.g. Nginx, Cloudflare, Heroku) in production.
@@ -52,7 +54,7 @@ app.use(cookieParser());
 // --- API Routes ---
 
 // user authentication routes
-app.use("api/users", userRoutes);
+app.use("/api/users", userRoutes);
 
 // Test Route: Public
 app.get("/health", (req, res) => {
@@ -63,17 +65,22 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Test Route: Error (for GlitchTip validation)
-app.get("/error", (req, res) => {
-  throw new Error("Test error for GlitchTip");
-});
+// // Test Route: Error (for GlitchTip validation)
+// app.get("/error", (req, res) => {
+//   throw new Error("Test error for GlitchTip");
+// });
 
-// 6. Global safe error handling middleware (must be registered last)
+// 6. Sentry Express Error Handler (MUST be before your custom error handlers)
+if (env.ENABLE_SENTRY) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
+// 7. Global safe error handling middleware (must be registered last)
 app.use(errorHandler);
 
-// Bootstrap server
 const PORT = env.PORT;
 const server = app.listen(PORT, () => {
+  
   console.log(`=============================================`);
   console.log(`  GLANCE CAR WASH - SECURE SERVER STARTED    `);
   console.log(`  Port:        ${PORT}                          `);
