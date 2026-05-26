@@ -677,7 +677,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                 variant="destructive"
                 onClick={handleDeleteAccount}
                 disabled={delLoading || !isDeleteFormValid}
-                className="flex-1 rounded-xl active:scale-[0.97] bg-rose-600 hover:bg-rose-500 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed border-transparent"
+                className="flex-1 rounded-xl active:scale-[0.97] bg-rose-600 hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed border-transparent"
               >
                 {delLoading ? "Processing..." : "Confirm Deletion"}
               </Button>
