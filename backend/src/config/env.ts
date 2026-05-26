@@ -19,15 +19,15 @@ const urlListSchema = z.string().transform((val) => {
   for (const origin of origins) {
     try {
       const url = new URL(origin);
-      
+
       // Enforce security protocol rules:
       // Production mode MUST be https only. Development/Test mode can be http or https.
       if (isProd) {
         if (url.protocol !== "https:") return false;
-        
+
         const hostname = url.hostname;
         const isIP = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(hostname) || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
-        
+
         // Strict domain verification for prod URLs (except IP/localhost overrides)
         if (!isIP && !domainRegex.test(hostname)) {
           return false;
@@ -48,6 +48,7 @@ const urlListSchema = z.string().transform((val) => {
 
 export const env = createEnv({
   server: {
+    FRONTEND_URL: z.string().min(1),
     DATABASE_URL: z.string().min(1),
     CORS_ORIGIN: urlListSchema,
     ALLOWED_HELMET_URL: urlListSchema,
@@ -56,11 +57,11 @@ export const env = createEnv({
     JWT_SECRET: z.string().min(8),
     JWT_EXPIRES_IN: z.string().default("15m"),
     JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
-    SUPERADMIN_EMAIL: z.string().email(),
+    SUPERADMIN_EMAIL: z.email(),
     SUPERADMIN_PASSWORD: z.string().min(8),
-    SENTRY_DSN: z.string().url().optional(),
+    SENTRY_DSN: z.url().optional(),
     ENABLE_SENTRY: z.coerce.boolean().default(false),
-    
+
     // Better Auth
     BETTER_AUTH_URL: z.string().url().default("http://localhost:3500"),
     BETTER_AUTH_SECRET: z.string().min(8).default("development_secret_only"),
@@ -68,6 +69,12 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().optional(),
     FACEBOOK_CLIENT_ID: z.string().optional(),
     FACEBOOK_CLIENT_SECRET: z.string().optional(),
+
+    // SMTP Mailer
+    SMTP_HOST: z.string().min(1),
+    SMTP_PORT: z.string().default("587"),
+    SMTP_USER: z.email(),
+    SMTP_PASS: z.string().min(1),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

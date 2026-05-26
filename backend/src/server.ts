@@ -65,6 +65,12 @@ app.use(corsOptions);
 // 3. Setup rate limiter to protect all routes
 app.use(globalRateLimiter);
 
+
+// --- API Routes ---
+// 3.5. Better Auth mount (MUST be before express.json to preserve request body stream)
+// Use app.all with named wildcard — path-to-regexp v8 (Express 5) requires named wildcards like /*splat
+app.all("/api/auth/*splat", toNodeHandler(auth));
+
 // 4. Request parsing with payload limits to prevent large-body attacks
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
@@ -74,8 +80,7 @@ app.use(cookieParser());
 
 // --- API Routes ---
 
-// user authentication routes
-app.use("/api/auth", toNodeHandler(auth));
+// user profile and admin routes
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 

@@ -5,6 +5,32 @@ This document outlines the authentication endpoints provided automatically by **
 Since we migrated to Better Auth, the standard Express controllers (`/login`, `/register`, `/logout`) have been replaced by Better Auth's native handlers, providing maximum security (scrypt hashing, secure sessions, rate limiting).
 
 Base URL for Auth: `POST /api/auth/*`
+---
+
+## ⚠️ Troubleshooting: `MISSING_OR_NULL_ORIGIN` Error
+
+If you call any Better Auth route (`/api/auth/*`) and receive this error:
+```json
+{
+  "message": "Missing or null Origin",
+  "code": "MISSING_OR_NULL_ORIGIN"
+}
+```
+
+### Why it happens:
+Better Auth has native **CSRF protection** enabled. Security-wise, it strictly requires the incoming request to carry a valid `Origin` header mapping to one of its `trustedOrigins`. 
+Testing clients like **Postman**, **Thunder Client**, or mobile app libraries (like `curl`) do not attach an `Origin` header by default, causing Better Auth to reject them with a 403 status.
+
+### How to resolve it:
+When testing/hitting Better Auth endpoints from external clients, manually add the following **header** to your request:
+* **Key:** `Origin`
+* **Value:** `http://localhost:3000` *(or whichever trusted frontend domain is registered in `CORS_ORIGIN`)*
+
+---
+
+*Note: For the exact frontend client usage, see `frontend/lib/auth-client.ts`. Better Auth automatically generates a strongly typed React client (`authClient`) to interact with these endpoints seamlessly.*
+
+---
 
 ## 1. Sign Up (Email & Password)
 **Endpoint:** `POST /api/auth/sign-up/email`
@@ -137,27 +163,20 @@ trustedOrigins: env.CORS_ORIGIN, // e.g. ["http://localhost:3000"]
 ```
 *(Requires confirming your current password to process the deletion safely)*
 
----
+## 9. Update Profile Details
+**Endpoint:** `PATCH /api/users/profile`
 
-## ⚠️ Troubleshooting: `MISSING_OR_NULL_ORIGIN` Error
+**Access:** Private (Requires Token/Session authentication)
 
-If you call any Better Auth route (`/api/auth/*`) and receive this error:
+**Description:** Updates the authenticated user's profile details. Security rules prevent modification of critical system fields.
+
+**Payload:**
 ```json
 {
-  "message": "Missing or null Origin",
-  "code": "MISSING_OR_NULL_ORIGIN"
+  "phone": "+971501234567", // Required, valid international format starting with '+'
+  "name": "Jane Doe",         // Optional, minimum 2 characters
+  "whatsapp": "+971501234567" // Optional, valid international format starting with '+'
 }
 ```
 
-### Why it happens:
-Better Auth has native **CSRF protection** enabled. Security-wise, it strictly requires the incoming request to carry a valid `Origin` header mapping to one of its `trustedOrigins`. 
-Testing clients like **Postman**, **Thunder Client**, or mobile app libraries (like `curl`) do not attach an `Origin` header by default, causing Better Auth to reject them with a 403 status.
-
-### How to resolve it:
-When testing/hitting Better Auth endpoints from external clients, manually add the following **header** to your request:
-* **Key:** `Origin`
-* **Value:** `http://localhost:3000` *(or whichever trusted frontend domain is registered in `CORS_ORIGIN`)*
-
----
-
-*Note: For the exact frontend client usage, see `frontend/lib/auth-client.ts`. Better Auth automatically generates a strongly typed React client (`authClient`) to interact with these endpoints seamlessly.*
+*Note: Critical fields like `role`, `is_active`, `id`, and `email` are strictly forbidden from being updated via this route and will trigger a `403 Forbidden` error if sent.*
