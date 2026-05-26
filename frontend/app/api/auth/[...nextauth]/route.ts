@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { env } from "@/utils/env";
 
 const handler = NextAuth({
   providers: [
@@ -18,7 +19,7 @@ const handler = NextAuth({
         }
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/users/signin`, {
+          const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/users/signin`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -76,7 +77,7 @@ const handler = NextAuth({
   pages: {
     // signIn: '/login', // uncomment to use custom login page
   },
-  secret: process.env.NEXTAUTH_SECRET || "fallback_secret_for_development",
+  secret: env.NEXTAUTH_SECRET,
 });
 
 export { handler as GET, handler as POST };
