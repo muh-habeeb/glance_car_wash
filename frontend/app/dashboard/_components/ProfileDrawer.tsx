@@ -92,9 +92,12 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
   const isCredentialsUser = !isGoogle && !isFacebook;
 
   // Change state / variables
-  // Delete forms password input
+  // Delete forms input
   const [delPassword, setDelPassword] = useState("");
-  const isDeleteFormValid = isCredentialsUser ? delPasswordSchema.safeParse(delPassword).success : true;
+  const [delEmail, setDelEmail] = useState("");
+  const isDeleteFormValid = isCredentialsUser 
+    ? delPasswordSchema.safeParse(delPassword).success 
+    : (z.string().email().safeParse(delEmail).success && delEmail === user?.email);
 
   // Profile forms
   const [pName, setPName] = useState(user?.name || "");
@@ -621,7 +624,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
               </p>
             </div>
 
-            {isCredentialsUser && (
+            {isCredentialsUser ? (
               <div className="space-y-1.5 text-left">
                 <ValidatedInput
                   label="Confirm Profile Password"
@@ -635,6 +638,24 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                     value={delPassword}
                     onChange={(e) => setDelPassword(e.target.value)}
                     placeholder="Enter Your password"
+                    className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl py-2.5 px-4 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
+                  />
+                </ValidatedInput>
+              </div>
+            ) : (
+              <div className="space-y-1.5 text-left">
+                <ValidatedInput
+                  label="Confirm Your Email"
+                  value={delEmail}
+                  schema={z.string().email("Invalid email address").refine(val => val === user?.email, "Email does not match")}
+                  isSubmitted={false}
+                >
+                  <input
+                    id="delEmail"
+                    type="email"
+                    value={delEmail}
+                    onChange={(e) => setDelEmail(e.target.value)}
+                    placeholder={user?.email || "Enter your email"}
                     className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl py-2.5 px-4 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
                   />
                 </ValidatedInput>
