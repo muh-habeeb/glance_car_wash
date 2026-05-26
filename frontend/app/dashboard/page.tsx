@@ -1,106 +1,63 @@
 "use client";
 
-import Image from "next/image";
-import { useSession, signOut, authClient } from "../../lib/auth-client";
+import { useSession, signOut } from "../../lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { env } from "@/utils/env";
+import Image from "next/image";
+import {
+  LogOut,
+  Calendar,
+  Sparkles,
+  Car,
+  Clock,
+  Plus,
+  Mail
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "profile" | "security" | "danger";
+// Import our newly extracted Profile Settings Sidebar Drawer Component
+import { ProfileDrawer } from "./_components/ProfileDrawer";
 
-// ─── Small re-usable field component ─────────────────────────────────────────
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-  disabled,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-  disabled?: boolean;
-}) {
-  return (
-    <div>
-      <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white
-          focus:outline-none focus:border-yellow-500/60 focus:ring-1 focus:ring-yellow-500/40
-          transition-all placeholder-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
-      />
-    </div>
-  );
-}
+// Import Boneyard-js skeleton loading component
+import { Skeleton } from "boneyard-js/react";
+import { ModeToggle } from "@/components/ui/ModeToggle";
 
-// ─── Alert banner ─────────────────────────────────────────────────────────────
-function Alert({ type, message }: { type: "error" | "success" | "info"; message: string }) {
-  const styles = {
-    error: "bg-red-500/10 border-red-500/40 text-red-400",
-    success: "bg-emerald-500/10 border-emerald-500/40 text-emerald-400",
-    info: "bg-blue-500/10 border-blue-500/30 text-blue-300",
-  };
-  return (
-    <div className={`text-sm border rounded-xl px-4 py-3 ${styles[type]}`}>{message}</div>
-  );
-}
-
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { data: sessionData, isPending, refetch } = useSession();
   const router = useRouter();
 
-  // ── Tab state ──
-  const [activeTab, setActiveTab] = useState<Tab>("profile");
+  // Navigation and UI state
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [activePage, setActivePage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // ── Profile form ──
-  const [pName, setPName] = useState("");
-  const [pPhone, setPPhone] = useState("");
-  const [pWhatsapp, setPWhatsapp] = useState("");
-  const [pLoading, setPLoading] = useState(false);
-  const [pMsg, setPMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
-
-  // ── Change password form ──
-  const [cpCurrent, setCpCurrent] = useState("");
-  const [cpNew, setCpNew] = useState("");
-  const [cpConfirm, setCpConfirm] = useState("");
-  const [cpLoading, setCpLoading] = useState(false);
-  const [cpMsg, setCpMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
-
-  // ── Change email form ──
-  const [ceNewEmail, setCeNewEmail] = useState("");
-  const [ceLoading, setCeLoading] = useState(false);
-  const [ceMsg, setCeMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
-
-  // ── Delete account ──
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [delPassword, setDelPassword] = useState("");
-  const [delLoading, setDelLoading] = useState(false);
-  const [delMsg, setDelMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
-
-  // Seed profile form from session
+  // Trigger a brief simulated skeleton loading delay for testing premium Boneyard loadings
   useEffect(() => {
-    if (sessionData?.user) {
-      const u = sessionData.user as any;
-      setPName(u.name || "");
-      setPPhone(u.phone || "");
-      setPWhatsapp(u.whatsapp || "");
-    }
-  }, [sessionData]);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 900);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!isPending && !sessionData) {
       router.push("/login");
@@ -109,10 +66,10 @@ export default function Dashboard() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-          <p className="text-gray-400 text-sm animate-pulse">Loading secure session...</p>
+          <div className="w-12 h-12 border-4 border-glanz-gold/20 border-t-glanz-gold rounded-full animate-spin" />
+          <p className="text-slate-500 dark:text-cream/60 text-sm animate-pulse">Loading secure session...</p>
         </div>
       </div>
     );
@@ -121,401 +78,253 @@ export default function Dashboard() {
   if (!sessionData) return null;
 
   const user = sessionData.user as any;
+  const isGoogle = user.image?.includes("googleusercontent.com");
+  const isFacebook = user.image?.includes("facebook.com") || user.image?.includes("platform-lookaside");
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
-
-  const handleProfileSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPLoading(true);
-    setPMsg(null);
-    try {
-      const body: Record<string, string> = {};
-      if (pName.trim() && pName.trim() !== user.name) body.name = pName.trim();
-      if (pPhone && pPhone !== user.phone) body.phone = pPhone;
-      if (pWhatsapp !== user.whatsapp) body.whatsapp = pWhatsapp;
-
-      if (Object.keys(body).length === 0) {
-        setPMsg({ type: "error", text: "No changes detected." });
-        return;
-      }
-
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_SERVER_URL!}/api/users/profile`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Update failed");
-      setPMsg({ type: "success", text: "Profile updated successfully!" });
-      refetch?.();
-    } catch (err: any) {
-      setPMsg({ type: "error", text: err.message || "Something went wrong." });
-    } finally {
-      setPLoading(false);
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCpLoading(true);
-    setCpMsg(null);
-    if (cpNew !== cpConfirm) {
-      setCpMsg({ type: "error", text: "New passwords do not match." });
-      setCpLoading(false);
-      return;
-    }
-    try {
-      const result = await authClient.changePassword({
-        currentPassword: cpCurrent,
-        newPassword: cpNew,
-        revokeOtherSessions: true,
-      });
-      if (result.error) throw new Error(result.error.message);
-      setCpMsg({ type: "success", text: "Password changed. Other sessions have been signed out." });
-      setCpCurrent(""); setCpNew(""); setCpConfirm("");
-    } catch (err: any) {
-      setCpMsg({ type: "error", text: err.message || "Failed to change password." });
-    } finally {
-      setCpLoading(false);
-    }
-  };
-
-  const handleChangeEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCeLoading(true);
-    setCeMsg(null);
-    try {
-      const result = await authClient.changeEmail({
-        newEmail: ceNewEmail,
-        callbackURL: "/dashboard",
-      });
-      if (result.error) throw new Error(result.error.message);
-      setCeMsg({
-        type: "success",
-        text: `Verification email sent to ${ceNewEmail}. Your email will update after you verify it.`,
-      });
-      setCeNewEmail("");
-    } catch (err: any) {
-      setCeMsg({ type: "error", text: err.message || "Failed to request email change." });
-    } finally {
-      setCeLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    setDelLoading(true);
-    setDelMsg(null);
-    try {
-      const result = await authClient.deleteUser({
-        password: delPassword || undefined,
-        callbackURL: "/",
-      });
-      // Better Auth's beforeDelete throws APIError("OK") to cancel hard-delete;
-      // the client may receive this as a success-like response.
-      if (result.error && !result.error.message?.includes("7 days")) {
-        throw new Error(result.error.message);
-      }
-      setDelMsg({
-        type: "success",
-        text: "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
-      });
-      setTimeout(() => signOut().then(() => router.push("/")), 2000);
-    } catch (err: any) {
-      // If the message contains our custom 7-day message it's actually a success
-      if (err.message?.includes("7 days") || err.message?.includes("scheduled")) {
-        setDelMsg({
-          type: "success",
-          text: "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
-        });
-        setTimeout(() => signOut().then(() => router.push("/")), 3000);
-      } else {
-        setDelMsg({ type: "error", text: err.message || "Failed to delete account." });
-      }
-    } finally {
-      setDelLoading(false);
-    }
-  };
-
-  // ── Render ─────────────────────────────────────────────────────────────────
-
-  const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: "profile", label: "Profile", icon: "👤" },
-    { id: "security", label: "Security", icon: "🔒" },
-    { id: "danger", label: "Danger Zone", icon: "⚠️" },
+  // Mock Bookings Data
+  const dummyBookings = [
+    { id: "BKG-9082", vehicle: "Tesla Model S (Black)", package: "Ceramic Glaze Wash", date: "May 27, 2026 - 10:30 AM", price: "$49.00", status: "In Progress" },
+    { id: "BKG-8711", vehicle: "Porsche 911 (Silver)", package: "Glanz Signature Detail", date: "May 25, 2026 - 02:00 PM", price: "$120.00", status: "Completed" },
+    { id: "BKG-8540", vehicle: "BMW M4 (Gold)", package: "Exterior Polish & Wax", date: "May 20, 2026 - 09:00 AM", price: "$75.00", status: "Completed" },
+    { id: "BKG-8109", vehicle: "Mercedes C63 (White)", package: "Express Interior Wash", date: "May 18, 2026 - 11:15 AM", price: "$35.00", status: "Completed" },
+    { id: "BKG-7988", vehicle: "Audi RS6 (Gray)", package: "Ceramic Wash & Interior Detail", date: "May 12, 2026 - 04:30 PM", price: "$85.00", status: "Cancelled" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-start p-4 sm:p-6 pt-10 relative overflow-hidden">
-      {/* Glow */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-yellow-500/5 blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-blue-500/8 blur-[140px] pointer-events-none" />
+    <div className="min-h-screen bg-white dark:bg-glanz-black text-slate-800 dark:text-white flex flex-col justify-start relative overflow-hidden transition-colors duration-300">
+      {/* Soft Premium Glow */}
+      <div className="absolute top-[-10%] left-[-0%] w-[600px] h-[600px] rounded-full bg-glanz-gold/20 dark:bg-glanz-gold/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-50%] right-[-0%] w-[600px] h-[600px] rounded-full bg-deep-bronze/20 dark:bg-deep-bronze/10 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-2xl relative z-10 space-y-6">
-        {/* ── Header Card ── */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_60px_-20px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center gap-4">
-            {!imageError && user?.image ? (
+      {/* ── Dashboard Navigation Bar ── */}
+      <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-glanz-black/60 border-b border-slate-200 dark:border-charcoal/50 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setIsProfileOpen(false)}>
+            <div className="w-9 h-9 relative flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
               <Image
-                src={user.image}
-                alt={user.name || "Avatar"}
-                width={56}
-                height={56}
-                onError={() => {
-                  console.warn("Avatar failed to load — using initials fallback");
-                  setImageError(true);
-                }}
-                className="w-14 h-14 rounded-full object-cover border-2 border-yellow-500/30 shadow-lg"
+                src="/assets/logo/gold_logo_no_text.png"
+                alt="Glanz Gold Logo"
+                width={36}
+                height={36}
+                className="object-contain"
+                priority
               />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-xl font-bold text-black uppercase shadow-lg">
-                {user?.name ? user.name.charAt(0) : "U"}
-              </div>
-            )}
-            <div>
-              <h1 className="text-2xl font-extrabold bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
-                {user?.name || "Welcome"}
-              </h1>
-              <p className="text-gray-400 text-xs mt-0.5">{user?.email}</p>
-              <p className="mt-1">
-                <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                  {user?.role || "USER"}
-                </span>
-              </p>
             </div>
+            <span className="font-extrabold text-lg tracking-wide bg-linear-to-r from-deep-bronze to-cream bg-clip-text text-transparent group-hover:to-glanz-gold transition-all">
+              GLANZ - PREMIUM   <span className="text-glanz-gold font-light"> CAR WASH </span>
+            </span>
           </div>
-          <button
-            onClick={() => signOut().then(() => router.push("/login"))}
-            className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold px-4 py-2 rounded-xl transition-all text-sm active:scale-[0.97]"
-          >
-            Log Out
-          </button>
-        </div>
 
-        {/* ── Tab Nav ── */}
-        <div className="flex gap-1 bg-gray-900/60 border border-gray-800 rounded-xl p-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-semibold transition-all ${
-                activeTab === tab.id
-                  ? "bg-yellow-500 text-black shadow-md"
-                  : "text-gray-400 hover:text-white hover:bg-gray-800/60"
-              }`}
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => signOut().then(() => router.push("/login"))}
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex border-slate-200 dark:border-charcoal text-slate-700 dark:text-cream hover:bg-slate-100 dark:hover:bg-charcoal/50 text-xs px-4"
             >
-              <span>{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          ))}
-        </div>
+              <LogOut className="w-3.5 h-3.5 mr-2" />
+              Log Out
+            </Button>
 
-        {/* ── Profile Tab ── */}
-        {activeTab === "profile" && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]">
-            <h2 className="text-base font-bold text-white">Edit Profile</h2>
-            <form onSubmit={handleProfileSave} className="space-y-4">
-              <Field label="Full Name" value={pName} onChange={setPName} placeholder="John Doe" />
-              <Field
-                label="Phone Number"
-                value={pPhone}
-                onChange={setPPhone}
-                placeholder="+1234567890"
-                type="tel"
-              />
-              <Field
-                label="WhatsApp Number (optional)"
-                value={pWhatsapp}
-                onChange={setPWhatsapp}
-                placeholder="+1234567890"
-                type="tel"
-              />
-              {/* Read-only info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="bg-gray-950/60 border border-gray-800/60 rounded-xl px-4 py-3">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-wider block mb-0.5">Email</span>
-                  <span className="text-gray-300 text-sm truncate block">{user?.email}</span>
-                </div>
-                <div className="bg-gray-950/60 border border-gray-800/60 rounded-xl px-4 py-3">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-wider block mb-0.5">Email Verified</span>
-                  <span className={`text-sm font-medium ${user?.emailVerified ? "text-emerald-400" : "text-red-400"}`}>
-                    {user?.emailVerified ? "✓ Verified" : "✗ Not verified"}
-                  </span>
-                </div>
-              </div>
-              {pMsg && <Alert type={pMsg.type} message={pMsg.text} />}
-              <button
-                type="submit"
-                disabled={pLoading}
-                className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2.5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50"
-              >
-                {pLoading ? "Saving..." : "Save Changes"}
-              </button>
-            </form>
-          </div>
-        )}
+            <ModeToggle />
 
-        {/* ── Security Tab ── */}
-        {activeTab === "security" && (
-          <div className="space-y-5">
-            {/* Change Password */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]">
-              <div>
-                <h2 className="text-base font-bold text-white">Change Password</h2>
-                <p className="text-xs text-gray-500 mt-0.5">All other sessions will be signed out after changing.</p>
-              </div>
-              <form onSubmit={handleChangePassword} className="space-y-3">
-                <Field
-                  label="Current Password"
-                  value={cpCurrent}
-                  onChange={setCpCurrent}
-                  type="password"
-                  placeholder="••••••••"
-                />
-                <Field
-                  label="New Password"
-                  value={cpNew}
-                  onChange={setCpNew}
-                  type="password"
-                  placeholder="Min 8 characters"
-                />
-                <Field
-                  label="Confirm New Password"
-                  value={cpConfirm}
-                  onChange={setCpConfirm}
-                  type="password"
-                  placeholder="Re-enter new password"
-                />
-                {cpMsg && <Alert type={cpMsg.type} message={cpMsg.text} />}
-                <button
-                  type="submit"
-                  disabled={cpLoading}
-                  className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2.5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  {cpLoading ? "Updating..." : "Update Password"}
-                </button>
-              </form>
-              <p className="text-xs text-gray-600 pt-1">
-                Forgot your password?{" "}
-                <a href="/forgot-password" className="text-yellow-500 hover:text-yellow-400 underline">
-                  Reset via email
-                </a>
-              </p>
-            </div>
-
-            {/* Change Email */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]">
-              <div>
-                <h2 className="text-base font-bold text-white">Change Email</h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  A verification link will be sent to your <strong>new</strong> email. Your email updates only after verification.
-                </p>
-              </div>
-              <form onSubmit={handleChangeEmail} className="space-y-3">
-                <Field
-                  label="New Email Address"
-                  value={ceNewEmail}
-                  onChange={setCeNewEmail}
-                  type="email"
-                  placeholder="new@example.com"
-                />
-                {ceMsg && <Alert type={ceMsg.type} message={ceMsg.text} />}
-                <button
-                  type="submit"
-                  disabled={ceLoading}
-                  className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2.5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  {ceLoading ? "Sending..." : "Send Verification Link"}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ── Danger Zone Tab ── */}
-        {activeTab === "danger" && (
-          <div className="bg-gray-900 border border-red-900/40 rounded-2xl p-6 space-y-5 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]">
-            <div>
-              <h2 className="text-base font-bold text-red-400">Danger Zone</h2>
-              <p className="text-xs text-gray-500 mt-0.5">These actions are serious and cannot easily be undone.</p>
-            </div>
-
-            {/* 7-day warning banner */}
-            <div className="bg-red-950/40 border border-red-800/40 rounded-xl px-4 py-3 space-y-1">
-              <p className="text-sm font-semibold text-red-300">⚠️ Account Deletion — 7-Day Grace Period</p>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Requesting deletion <strong className="text-gray-200">deactivates your account immediately</strong> and
-                schedules permanent deletion in <strong className="text-red-300">7 days</strong>. You will receive a
-                confirmation email. To cancel, simply log back in before the deadline.
-              </p>
-            </div>
-
+            {/* Avatar Trigger for Profile Side Panel */}
             <button
-              onClick={() => setShowDeleteModal(true)}
-              className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold py-3 rounded-xl transition-all active:scale-[0.98] text-sm"
+              onClick={() => setIsProfileOpen(true)}
+              className="relative rounded-full focus:outline-none focus:ring-2 focus:ring-glanz-gold/50 cursor-pointer overflow-visible shrink-0 transition-transform hover:scale-105"
             >
-              Request Account Deletion
+              {!imageError && user?.image ? (
+                <Image
+                  src={user.image}
+                  alt={user.name || "Avatar"}
+                  width={38}
+                  height={38}
+                  onError={() => setImageError(true)}
+                  className="w-9.5 h-9.5 rounded-full object-cover border border-slate-200 dark:border-glanz-gold/40"
+                />
+              ) : (
+                <div className="w-9.5 h-9.5 rounded-full bg-gradient-to-br from-glanz-gold to-deep-bronze flex items-center justify-center text-sm font-bold text-glanz-black uppercase border border-slate-200 dark:border-glanz-gold/40 shadow-md shadow-glanz-gold/10">
+                  {user?.name ? user.name.charAt(0) : "U"}
+                </div>
+              )}
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border border-white dark:border-glanz-black rounded-full" />
             </button>
           </div>
-        )}
-      </div>
-
-      {/* ── Delete Confirmation Modal ── */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-gray-900 border border-red-900/50 rounded-2xl p-7 w-full max-w-md shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
-            <div className="text-center">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h3 className="text-xl font-extrabold text-red-400">Delete Account</h3>
-              <p className="text-gray-400 text-sm mt-2 leading-relaxed">
-                Your account will be <strong className="text-white">deactivated immediately</strong> and permanently deleted in{" "}
-                <strong className="text-red-300">7 days</strong>. This cannot be undone after the grace period.
-              </p>
-            </div>
-
-            {/* Password confirm (for credential users) */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-                Confirm Password <span className="text-gray-600 lowercase normal-case">(if you signed up with email)</span>
-              </label>
-              <input
-                type="password"
-                value={delPassword}
-                onChange={(e) => setDelPassword(e.target.value)}
-                placeholder="Enter your password to confirm"
-                className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white
-                  focus:outline-none focus:border-red-500/60 focus:ring-1 focus:ring-red-500/40
-                  transition-all placeholder-gray-600"
-              />
-              <p className="text-xs text-gray-600 mt-1">
-                Social login users (Google/Facebook) can leave this blank.
-              </p>
-            </div>
-
-            {delMsg && <Alert type={delMsg.type} message={delMsg.text} />}
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setShowDeleteModal(false); setDelMsg(null); setDelPassword(""); }}
-                disabled={delLoading}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-xl transition-all text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={delLoading}
-                className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl transition-all active:scale-[0.97] disabled:opacity-50 text-sm"
-              >
-                {delLoading ? "Processing..." : "Yes, Delete My Account"}
-              </button>
-            </div>
-          </div>
         </div>
-      )}
+      </header>
+
+      {/* ── Main Bookings Grid View ── */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 relative z-10">
+
+        {/* ── Hero Metrics Panel wrapped in Boneyard Skeleton loading container ── */}
+        <Skeleton name="dashboard-metrics" loading={isLoading}>
+          <section className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <Card className="border border-slate-200 dark:border-charcoal bg-slate-50/50 dark:bg-glanz-black/60 shadow-[0_4px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-glanz-gold/10 border border-glanz-gold/20 flex items-center justify-center text-glanz-gold shrink-0">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-slate-400 dark:text-cream/40 uppercase tracking-wider block font-bold">Total Services</span>
+                  <p className="text-2xl font-black text-slate-800 dark:text-white">12 Bookings</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-slate-200 dark:border-charcoal bg-slate-50/50 dark:bg-glanz-black/60 shadow-[0_4px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0">
+                  <Clock className="w-5 h-5 animate-pulse" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-slate-400 dark:text-cream/40 uppercase tracking-wider block font-bold">Active Wash</span>
+                  <p className="text-2xl font-black text-slate-800 dark:text-white">1 In Progress</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-slate-200 dark:border-charcoal bg-slate-50/50 dark:bg-glanz-black/60 shadow-[0_4px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 dark:text-emerald-400 shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-slate-400 dark:text-cream/40 uppercase tracking-wider block font-bold">Loyalty Level</span>
+                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    450 Pts
+                    <span className="text-xs font-bold uppercase px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/20">Gold</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        </Skeleton>
+
+        {/* ── Table of Bookings ── */}
+        <section className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1 text-left">
+              <h2 className="text-xl font-extrabold tracking-wide text-slate-800 dark:text-white flex items-center gap-2">
+                <Car className="w-5 h-5 text-glanz-gold" />
+                Service Bookings
+              </h2>
+              <p className="text-slate-500 dark:text-cream/55 text-xs">Track and manage your upcoming and completed auto washes.</p>
+            </div>
+
+            <Button className="bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold shadow-md shadow-glanz-gold/15 rounded-xl text-xs py-2 px-4.5 self-start sm:self-auto flex items-center gap-1.5 active:scale-[0.98]">
+              <Plus className="w-4 h-4" />
+              Book New Wash
+            </Button>
+          </div>
+
+          <Skeleton name="dashboard-table" loading={isLoading}>
+            <Card className="border border-slate-200 dark:border-charcoal bg-white dark:bg-glanz-black/50 shadow-xl overflow-hidden rounded-xl">
+              <Table>
+                <TableHeader className="bg-slate-50 dark:bg-transparent">
+                  <TableRow className="border-b border-slate-100 dark:border-charcoal/40">
+                    <TableHead className="w-[120px] py-4 px-6 text-slate-500 dark:text-midgray font-bold">Booking ID</TableHead>
+                    <TableHead className="py-4 px-6 text-slate-500 dark:text-midgray font-bold">Vehicle</TableHead>
+                    <TableHead className="py-4 px-6 text-slate-500 dark:text-midgray font-bold">Wash Package</TableHead>
+                    <TableHead className="py-4 px-6 text-slate-500 dark:text-midgray font-bold">Date & Time</TableHead>
+                    <TableHead className="py-4 px-6 text-slate-500 dark:text-midgray font-bold">Price</TableHead>
+                    <TableHead className="py-4 px-6 text-right text-slate-500 dark:text-midgray font-bold">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dummyBookings.map((bkg) => (
+                    <TableRow key={bkg.id} className="border-b border-slate-100 dark:border-charcoal/30 hover:bg-slate-50/50 dark:hover:bg-charcoal/10 transition-colors">
+                      <TableCell className="py-4.5 px-6 font-mono text-xs font-bold text-glanz-gold">{bkg.id}</TableCell>
+                      <TableCell className="py-4.5 px-6 font-semibold text-slate-800 dark:text-white">{bkg.vehicle}</TableCell>
+                      <TableCell className="py-4.5 px-6 text-xs font-medium text-slate-700 dark:text-cream">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-glanz-gold/50" />
+                          {bkg.package}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-4.5 px-6 text-xs text-slate-500 dark:text-cream/65">{bkg.date}</TableCell>
+                      <TableCell className="py-4.5 px-6 font-semibold text-slate-800 dark:text-white">{bkg.price}</TableCell>
+                      <TableCell className="py-4.5 px-6 text-right align-middle">
+                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${bkg.status === "In Progress"
+                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 animate-pulse"
+                          : bkg.status === "Completed"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                          }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${bkg.status === "In Progress"
+                            ? "bg-amber-400"
+                            : bkg.status === "Completed"
+                              ? "bg-emerald-400"
+                              : "bg-rose-500"
+                            }`} />
+                          {bkg.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+
+            {/* Pagination Controls */}
+            <div className="pt-4 flex justify-center w-full">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => { e.preventDefault(); if (activePage > 1) setActivePage(p => p - 1); }}
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink
+                      href="#"
+                      isActive={activePage === 1}
+                      onClick={(e) => { e.preventDefault(); setActivePage(1); }}
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink
+                      href="#"
+                      isActive={activePage === 2}
+                      onClick={(e) => { e.preventDefault(); setActivePage(2); }}
+                    >
+                      2
+                    </PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink
+                      href="#"
+                      isActive={activePage === 3}
+                      onClick={(e) => { e.preventDefault(); setActivePage(3); }}
+                    >
+                      3
+                    </PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => { e.preventDefault(); if (activePage < 3) setActivePage(p => p + 1); }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          </Skeleton>
+        </section>
+      </main>
+
+      {/* ── Slide Drawer / Sheet (Responsive Custom Profile Panel) ── */}
+      <ProfileDrawer
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        user={user}
+        refetch={refetch}
+      />
     </div>
   );
 }

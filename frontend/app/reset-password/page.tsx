@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, Suspense } from "react";
@@ -72,12 +73,12 @@ function ResetPasswordForm() {
   };
 
   return (
-    <Card className="w-full max-w-md border border-charcoal bg-glanz-black text-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] relative z-10 transition-all duration-300">
+    <Card className="w-full max-w-md border border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black text-slate-800 dark:text-white shadow-md dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] relative z-10 transition-all duration-300">
       <CardHeader className="text-center pb-2">
         <CardTitle className="text-3xl font-extrabold text-glanz-gold">
           New Password
         </CardTitle>
-        <CardDescription className="text-cream text-xs mt-1">
+        <CardDescription className="text-slate-500 dark:text-cream text-xs mt-1">
           Enter and confirm your new secure password below
         </CardDescription>
       </CardHeader>
@@ -86,7 +87,7 @@ function ResetPasswordForm() {
         <ErrorDisplay error={error} />
 
         {success && (
-          <div className="bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl text-xs text-center animate-pulse">
+          <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 p-3 rounded-xl text-xs text-center animate-pulse">
             {success}
           </div>
         )}
@@ -105,7 +106,7 @@ function ResetPasswordForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="new-password"
-              className="w-full bg-glanz-black border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all placeholder-midgray"
+              className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
             />
           </ValidatedInput>
 
@@ -127,8 +128,8 @@ function ResetPasswordForm() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center border-t border-charcoal pt-6">
-          <p className="text-cream text-xs">
+        <div className="mt-8 text-center border-t border-slate-200 dark:border-charcoal pt-6">
+          <p className="text-slate-500 dark:text-cream text-xs">
             Want to go back?{" "}
             <Link 
               href="/login"
@@ -145,15 +146,15 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-glanz-black text-white p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4 relative overflow-hidden transition-colors duration-300">
       {/* Soft Glow effects */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-glanz-gold/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-deep-bronze/5 blur-[120px] pointer-events-none" />
 
       <Suspense fallback={
-        <div className="bg-glanz-black border border-charcoal p-8 rounded-2xl w-full max-w-md flex flex-col items-center justify-center min-h-[300px]">
+        <div className="bg-slate-50 dark:bg-glanz-black border border-slate-200 dark:border-charcoal p-8 rounded-2xl w-full max-w-md flex flex-col items-center justify-center min-h-[300px]">
           <div className="w-10 h-10 border-4 border-glanz-gold/20 border-t-glanz-gold rounded-full animate-spin mb-4"></div>
-          <p className="text-cream text-sm">Loading security token...</p>
+          <p className="text-slate-500 dark:text-cream text-sm">Loading security token...</p>
         </div>
       }>
         <ResetPasswordForm />

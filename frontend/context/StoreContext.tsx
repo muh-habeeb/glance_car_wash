@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useRef } from "react";
+import React, { createContext, useContext } from "react";
 import { useStore } from "zustand";
 import { createAuthStore, type AuthStore, type AuthState } from "../store/useAuthStore";
 
@@ -21,14 +21,11 @@ export const AuthStoreProvider = ({
   children,
   initialState,
 }: AuthStoreProviderProps) => {
-  const storeRef = useRef<AuthStoreApi>(null);
-  
-  if (!storeRef.current) {
-    storeRef.current = createAuthStore(initialState);
-  }
+  // Initialize the client-side Zustand store exactly once safely using state initializer function
+  const [store] = React.useState(() => createAuthStore(initialState));
 
   return (
-    <AuthStoreContext.Provider value={storeRef.current}>
+    <AuthStoreContext.Provider value={store}>
       {children}
     </AuthStoreContext.Provider>
   );

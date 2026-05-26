@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthStoreProvider } from "@/context/StoreContext";
 import { Toaster } from "@/components/ui/Toaster";
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,13 +25,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn("h-full font-sans antialiased", inter.variable)}
     >
-      <body className="min-h-full flex flex-col">
-        <AuthStoreProvider>
-          {children}
-          <Toaster />
-        </AuthStoreProvider>
+      <body className="min-h-full flex flex-col bg-white dark:bg-glanz-black text-black dark:text-white transition-colors duration-300">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthStoreProvider>
+            {children}
+            <Toaster />
+          </AuthStoreProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

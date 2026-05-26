@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { env } from "../utils/env";
 
 const BASE_URL = env.NEXT_PUBLIC_SERVER_URL.endsWith("/")

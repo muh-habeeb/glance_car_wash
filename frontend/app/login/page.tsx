@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { z } from "zod";
+import { Eye, EyeOff } from "lucide-react";
 
 const emailSchema = z.string().min(1, "Email Address is required").email("Enter a valid email");
 const passwordSchema = z.string().min(1, "Password is required");
@@ -17,7 +19,7 @@ const passwordSchema = z.string().min(1, "Password is required");
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorDetail | null>(null);
 
@@ -25,14 +27,14 @@ export default function LoginPage() {
   const [resendSuccess, setResendSuccess] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const isFormValid = 
-    emailSchema.safeParse(email).success && 
+  const isFormValid =
+    emailSchema.safeParse(email).success &&
     passwordSchema.safeParse(password).success;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
-    
+
     if (!isFormValid) {
       return;
     }
@@ -130,26 +132,26 @@ export default function LoginPage() {
   const isEmailNotVerified = error?.whatHappened === "Email Verification Required";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-glanz-black text-white p-4">
-      <Card className="w-full max-w-md border border-charcoal bg-glanz-black text-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4 transition-colors duration-300">
+      <Card className="w-full max-w-md border border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black text-slate-800 dark:text-white shadow-md dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-300">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-3xl font-extrabold text-glanz-gold">
             Welcome Back
           </CardTitle>
-          <CardDescription className="text-cream text-xs mt-1">
+          <CardDescription className="text-slate-500 dark:text-cream text-xs mt-1">
             Sign in to continue to Glanz Premium Car Wash
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4 pt-4">
           {resendSuccess && (
-            <div className="bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl text-xs text-center">
+            <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 p-3 rounded-xl text-xs text-center">
               {resendSuccess}
             </div>
           )}
 
-          <ErrorDisplay 
-            error={error} 
+          <ErrorDisplay
+            error={error}
             onActionClick={isEmailNotVerified ? handleResendVerification : undefined}
             actionText="Resend Verification Link"
             actionLoading={resendLoading}
@@ -169,20 +171,12 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 autoComplete="email"
-                className="w-full bg-glanz-black border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all placeholder-midgray"
+                className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
               />
             </ValidatedInput>
 
             <div className="space-y-1 relative">
-              <div className="absolute right-0 top-0 z-10">
-                <Link 
-                  href="/forgot-password" 
-                  className="text-xs text-glanz-gold hover:text-soft-gold transition-all font-semibold"
-                  aria-label="Forgot your password?"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
+
               <ValidatedInput
                 label="Password"
                 value={password}
@@ -191,29 +185,47 @@ export default function LoginPage() {
               >
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  className="w-full bg-glanz-black border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all placeholder-midgray"
+                  className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
                 />
               </ValidatedInput>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 top-4 flex items-center pr-3.5 text-midgray hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+              <div className="absolute right-1 -bottom-6 z-10">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-glanz-gold hover:text-soft-gold transition-all font-semibold"
+                  aria-label="Forgot your password?"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
 
             <Button
               type="submit"
               disabled={loading || !isFormValid}
-              className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-6 w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           <div className="text-center pt-2">
-            <p className="text-cream text-xs">
+            <p className="text-slate-500 dark:text-cream text-xs">
               {"Don't have an account? "}
-              <Link 
+              <Link
                 href="/signup"
                 className="text-glanz-gold hover:text-soft-gold font-semibold transition-all hover:underline"
               >
@@ -224,10 +236,10 @@ export default function LoginPage() {
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-charcoal"></div>
+              <div className="w-full border-t border-slate-200 dark:border-charcoal"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-4 bg-glanz-black text-midgray uppercase tracking-wider text-[10px] font-bold">Or continue with</span>
+              <span className="px-4 bg-slate-50 dark:bg-glanz-black text-slate-400 dark:text-midgray uppercase tracking-wider text-[10px] font-bold">Or continue with</span>
             </div>
           </div>
 
@@ -236,7 +248,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleSocialSignIn("google")}
-              className="flex items-center justify-center border border-charcoal rounded-xl hover:bg-charcoal text-white transition-all bg-glanz-black/50 py-2.5"
+              className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5"
             >
               <svg className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                 <path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z" />
@@ -250,7 +262,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleSocialSignIn("facebook")}
-              className="flex items-center justify-center border border-charcoal rounded-xl hover:bg-charcoal text-white transition-all bg-glanz-black/50 py-2.5"
+              className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5"
             >
               <svg className="w-4 h-4 mr-2 fill-[#1877F2]" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />

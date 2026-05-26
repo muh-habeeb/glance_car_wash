@@ -49,17 +49,17 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-glanz-black text-white p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4 relative overflow-hidden transition-colors duration-300">
       {/* Soft Glow effects using brand colors */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-glanz-gold/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-deep-bronze/5 blur-[120px] pointer-events-none" />
 
-      <Card className="w-full max-w-md border border-charcoal bg-glanz-black text-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] relative z-10 transition-all duration-300">
+      <Card className="w-full max-w-md border border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black text-slate-800 dark:text-white shadow-md dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] relative z-10 transition-all duration-300">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-3xl font-extrabold text-glanz-gold">
             Reset Password
           </CardTitle>
-          <CardDescription className="text-cream text-xs mt-1">
+          <CardDescription className="text-slate-500 dark:text-cream text-xs mt-1">
             Enter your email and we'll send you a link to reset your password
           </CardDescription>
         </CardHeader>
@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
           <ErrorDisplay error={error} />
 
           {success && (
-            <div className="bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 p-4 rounded-xl text-xs text-center leading-relaxed">
+            <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 p-4 rounded-xl text-xs text-center leading-relaxed">
               {success}
             </div>
           )}
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 autoComplete="email"
-                className="w-full bg-glanz-black border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all placeholder-midgray"
+                className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
               />
             </ValidatedInput>
 
@@ -100,8 +100,8 @@ export default function ForgotPasswordPage() {
             </Button>
           </form>
 
-          <div className="mt-8 text-center border-t border-charcoal pt-6">
-            <p className="text-cream text-xs">
+          <div className="mt-8 text-center border-t border-slate-200 dark:border-charcoal pt-6">
+            <p className="text-slate-500 dark:text-cream text-xs">
               Remembered your password?{" "}
               <Link 
                 href="/login"

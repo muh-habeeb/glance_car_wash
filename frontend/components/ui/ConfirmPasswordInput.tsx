@@ -72,15 +72,15 @@ export function ConfirmPasswordInput({
   return (
     <div className="space-y-1 w-full relative">
       <div className="flex justify-between items-center">
-        <label htmlFor={id} className="block text-xs font-semibold text-cream uppercase tracking-wider">
+        <label htmlFor={id} className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
           {label}
         </label>
         {value.length > 0 && (
           <span className={cn(
             "text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider",
             isMatch 
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-              : "bg-rose-500/10 text-rose-400 border border-rose-500/20 animate-pulse"
+              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
+              : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 animate-pulse"
           )}>
             {isMatch ? "Matched" : "Mismatch"}
           </span>
@@ -104,8 +104,8 @@ export function ConfirmPasswordInput({
                 className={cn(
                   "inline-block transition-colors duration-100",
                   doesCharMatch 
-                    ? "text-emerald-400 font-bold" 
-                    : "text-rose-500 font-bold underline decoration-rose-500 decoration-2 decoration-wavy"
+                    ? "text-emerald-500 dark:text-emerald-400 font-bold" 
+                    : "text-rose-600 dark:text-rose-500 font-bold underline decoration-rose-500 decoration-2 decoration-wavy"
                 )}
               >
                 {displayChar}
@@ -122,12 +122,12 @@ export function ConfirmPasswordInput({
           value={value}
           onChange={handleChange}
           className={cn(
-            "w-full bg-glanz-black border rounded-xl pl-4 pr-12 py-2.5 text-sm font-mono focus:outline-none transition-all placeholder-midgray text-transparent caret-glanz-gold selection:bg-glanz-gold/25 selection:text-white",
+            "w-full bg-white dark:bg-glanz-black border rounded-xl pl-4 pr-12 py-2.5 text-sm font-mono focus:outline-none transition-all placeholder-midgray text-transparent caret-slate-800 dark:caret-glanz-gold selection:bg-glanz-gold/25 selection:text-white",
             showError 
               ? "border-rose-500/80 focus:border-rose-500 focus:ring-1 focus:ring-rose-500" 
               : isMatch && value.length > 0 
                 ? "border-emerald-500/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                : "border-charcoal focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold",
+                : "border-slate-200 dark:border-charcoal focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold",
             className
           )}
           placeholder={value.length === 0 ? "••••••••" : ""}
@@ -138,7 +138,7 @@ export function ConfirmPasswordInput({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-midgray hover:text-white transition-colors cursor-pointer"
+          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-midgray hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
           tabIndex={-1}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
@@ -147,7 +147,7 @@ export function ConfirmPasswordInput({
       </div>
 
       {showError && (
-        <p className="text-xs text-rose-400 mt-1 pl-1 transition-all duration-200">
+        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 pl-1 transition-all duration-200">
           Passwords do not match
         </p>
       )}

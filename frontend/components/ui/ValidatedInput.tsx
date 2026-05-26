@@ -94,18 +94,18 @@ export function ValidatedInput({
       child.props.className,
       showError 
         ? "border-rose-500/80 focus:border-rose-500 focus:ring-1 focus:ring-rose-500" 
-        : "border-charcoal focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold"
+        : "border-slate-200 dark:border-charcoal focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold"
     )
   });
 
   return (
     <div className="space-y-1 w-full">
-      <label htmlFor={child.props.id} className="block text-xs font-semibold text-cream uppercase tracking-wider">
+      <label htmlFor={child.props.id} className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
         {label}
       </label>
       {clonedChild}
       {showError && (
-        <p className="text-xs text-rose-400 mt-1 pl-1 transition-all duration-200">
+        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 pl-1 transition-all duration-200">
           {error}
         </p>
       )}
