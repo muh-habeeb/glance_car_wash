@@ -122,6 +122,42 @@ Since the frontend operates on a different port (`http://localhost:3000`), the b
 trustedOrigins: env.CORS_ORIGIN, // e.g. ["http://localhost:3000"]
 ```
 
+## 8. Delete Account (Soft Delete)
+**Endpoint:** `DELETE /api/users/profile`
+
+**Access:** Private (Requires Token/Session authentication)
+
+**Description:** Requests permanent account deletion. The account is immediately deactivated and the user is logged out. The account will be permanently deleted after a 7-day grace period. If the user logs back in during this 7-day window, the deletion request is cancelled and the account is restored.
+
+**Payload:**
+```json
+{
+  "password": "yourpassword123"
+}
+```
+*(Requires confirming your current password to process the deletion safely)*
+
+---
+
+## ⚠️ Troubleshooting: `MISSING_OR_NULL_ORIGIN` Error
+
+If you call any Better Auth route (`/api/auth/*`) and receive this error:
+```json
+{
+  "message": "Missing or null Origin",
+  "code": "MISSING_OR_NULL_ORIGIN"
+}
+```
+
+### Why it happens:
+Better Auth has native **CSRF protection** enabled. Security-wise, it strictly requires the incoming request to carry a valid `Origin` header mapping to one of its `trustedOrigins`. 
+Testing clients like **Postman**, **Thunder Client**, or mobile app libraries (like `curl`) do not attach an `Origin` header by default, causing Better Auth to reject them with a 403 status.
+
+### How to resolve it:
+When testing/hitting Better Auth endpoints from external clients, manually add the following **header** to your request:
+* **Key:** `Origin`
+* **Value:** `http://localhost:3000` *(or whichever trusted frontend domain is registered in `CORS_ORIGIN`)*
+
 ---
 
 *Note: For the exact frontend client usage, see `frontend/lib/auth-client.ts`. Better Auth automatically generates a strongly typed React client (`authClient`) to interact with these endpoints seamlessly.*
