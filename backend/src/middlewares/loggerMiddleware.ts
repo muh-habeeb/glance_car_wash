@@ -1,7 +1,7 @@
 /**
- * Copyright © GLANCE
+ * Copyright © GLANZ
  * Author: habeeb
- * Contact: muhhabeeb787+glanceautor@gmail.com
+ * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
 import { pinoHttp } from "pino-http";
@@ -11,7 +11,7 @@ import crypto from "crypto";
 // Middleware to log API requests and responses using Pino
 export const loggerMiddleware = pinoHttp({
   logger,
-  
+
   // Custom request id generator (correlation id)
   genReqId: (req) => {
     return req.id || req.headers["x-request-id"] || crypto.randomUUID();

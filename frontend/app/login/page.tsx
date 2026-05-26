@@ -1,29 +1,70 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "../../lib/auth-client";
+import { signIn, authClient } from "../../lib/auth-client";
 import Link from "next/link";
+import { formatAuthError, ErrorDetail } from "../../utils/errorFormatter";
+import ErrorDisplay from "../../components/ErrorDisplay";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { ValidatedInput } from "@/components/ui/ValidatedInput";
+import { z } from "zod";
+
+const emailSchema = z.string().min(1, "Email Address is required").email("Enter a valid email");
+const passwordSchema = z.string().min(1, "Password is required");
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ErrorDetail | null>(null);
+
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const isFormValid = 
+    emailSchema.safeParse(email).success && 
+    passwordSchema.safeParse(password).success;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitted(true);
+    
+    if (!isFormValid) {
+      return;
+    }
+
     setLoading(true);
-    setError("");
+    setError(null);
+    setResendSuccess("");
 
     try {
-      await signIn.email({
+      const result = await signIn.email({
         email,
         password,
         callbackURL: window.location.origin + "/dashboard",
       });
+      // Better Auth returns { data, error } — errors don't throw
+      if (result.error) {
+        const formattedErr = formatAuthError(result.error);
+        setError(formattedErr);
+        toast.error(formattedErr.whatHappened, {
+          description: formattedErr.whyItHappened,
+        });
+      } else {
+        toast.success("Welcome Back!", {
+          description: "Signing you into your secure dashboard...",
+        });
+      }
     } catch (err: any) {
-      setError(err?.message || "Failed to sign in");
+      const formattedErr = formatAuthError(err);
+      setError(formattedErr);
+      toast.error(formattedErr.whatHappened, {
+        description: formattedErr.whyItHappened,
+      });
     } finally {
       setLoading(false);
     }
@@ -31,124 +72,194 @@ export default function LoginPage() {
 
   const handleSocialSignIn = async (provider: "google" | "facebook") => {
     try {
-      await signIn.social({
+      setError(null);
+      setResendSuccess("");
+      const result = await signIn.social({
         provider,
         callbackURL: window.location.origin + "/dashboard",
       });
+      if (result?.error) {
+        const formattedErr = formatAuthError(result.error);
+        setError(formattedErr);
+        toast.error(formattedErr.whatHappened, {
+          description: formattedErr.whyItHappened,
+        });
+      }
     } catch (err: any) {
-      setError(err?.message || `Failed to sign in with ${provider}`);
+      const formattedErr = formatAuthError(err);
+      setError(formattedErr);
+      toast.error(formattedErr.whatHappened, {
+        description: formattedErr.whyItHappened,
+      });
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!email) return;
+    setResendLoading(true);
+    setError(null);
+    setResendSuccess("");
+    try {
+      const result = await authClient.sendVerificationEmail({
+        email,
+        callbackURL: window.location.origin + "/dashboard",
+      });
+      if (result?.error) {
+        const formattedErr = formatAuthError(result.error);
+        setError(formattedErr);
+        toast.error(formattedErr.whatHappened, {
+          description: formattedErr.whyItHappened,
+        });
+      } else {
+        setResendSuccess("A new verification email has been sent! Check your inbox.");
+        toast.success("Verification Email Sent", {
+          description: "Please check your inbox to verify your email address.",
+        });
+      }
+    } catch (err: any) {
+      const formattedErr = formatAuthError(err);
+      setError(formattedErr);
+      toast.error(formattedErr.whatHappened, {
+        description: formattedErr.whyItHappened,
+      });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  const isEmailNotVerified = error?.whatHappened === "Email Verification Required";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white p-4">
-      <div className="bg-gray-900 p-8 rounded-2xl w-full max-w-md border border-gray-800 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-300">
-        <h1 className="text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-          Welcome Back
-        </h1>
-        <p className="text-center text-gray-400 mb-8 text-sm">
-          Sign in to continue to Glance Car Wash
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-glanz-black text-white p-4">
+      <Card className="w-full max-w-md border border-charcoal bg-glanz-black text-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-300">
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-3xl font-extrabold text-glanz-gold">
+            Welcome Back
+          </CardTitle>
+          <CardDescription className="text-cream text-xs mt-1">
+            Sign in to continue to Glanz Premium Car Wash
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4 pt-4">
+          {resendSuccess && (
+            <div className="bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl text-xs text-center">
+              {resendSuccess}
+            </div>
+          )}
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl mb-6 text-sm text-center animate-pulse">
-            {error}
-          </div>
-        )}
+          <ErrorDisplay 
+            error={error} 
+            onActionClick={isEmailNotVerified ? handleResendVerification : undefined}
+            actionText="Resend Verification Link"
+            actionLoading={resendLoading}
+          />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">
-              Email Address
-            </label>
-            <input
-              type="email"
+          <form onSubmit={handleSubmit} className="space-y-4" aria-label="Sign in credentials form">
+            <ValidatedInput
+              label="Email Address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-600"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
+              schema={emailSchema}
+              isSubmitted={isSubmitted}
+            >
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className="w-full bg-glanz-black border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all placeholder-midgray"
+              />
+            </ValidatedInput>
 
-          <div>
-            <div className="flex justify-between items-center mb-1 ml-1">
-              <label className="text-sm font-medium text-gray-400">
-                Password
-              </label>
-              <Link 
-                href="/forgot-password" 
-                className="text-xs text-blue-400 hover:text-blue-300 transition-all font-semibold hover:underline"
+            <div className="space-y-1 relative">
+              <div className="absolute right-0 top-0 z-10">
+                <Link 
+                  href="/forgot-password" 
+                  className="text-xs text-glanz-gold hover:text-soft-gold transition-all font-semibold"
+                  aria-label="Forgot your password?"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+              <ValidatedInput
+                label="Password"
+                value={password}
+                schema={passwordSchema}
+                isSubmitted={isSubmitted}
               >
-                Forgot Password?
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  className="w-full bg-glanz-black border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all placeholder-midgray"
+                />
+              </ValidatedInput>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading || !isFormValid}
+              className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+
+          <div className="text-center pt-2">
+            <p className="text-cream text-xs">
+              {"Don't have an account? "}
+              <Link 
+                href="/signup"
+                className="text-glanz-gold hover:text-soft-gold font-semibold transition-all hover:underline"
+              >
+                Sign Up
               </Link>
-            </div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-600"
-              placeholder="••••••••"
-              required
-            />
+            </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-blue-500/20 disabled:opacity-50 mt-2"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-
-        <div className="mt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            Don't have an account?{" "}
-            <Link 
-              href="/signup"
-              className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-all"
-            >
-              Sign Up
-            </Link>
-          </p>
-        </div>
-
-        <div className="mt-8">
-          <div className="relative">
+          <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-800"></div>
+              <div className="w-full border-t border-charcoal"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-gray-900 text-gray-500">Or continue with</span>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-4 bg-glanz-black text-midgray uppercase tracking-wider text-[10px] font-bold">Or continue with</span>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <button
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => handleSocialSignIn("google")}
-              className="flex items-center justify-center px-4 py-3 border border-gray-800 rounded-xl hover:bg-gray-800 hover:border-gray-700 transition-all active:scale-[0.98] bg-gray-950/50 group"
+              className="flex items-center justify-center border border-charcoal rounded-xl hover:bg-charcoal text-white transition-all bg-glanz-black/50 py-2.5"
             >
-              <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              <svg className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z" />
+                <path fill="#4285F4" d="M23.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18c-.75 1.48-1.18 3.15-1.18 4.93s.43 3.45 1.18 4.93l3.66-2.84z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
               </svg>
               Google
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => handleSocialSignIn("facebook")}
-              className="flex items-center justify-center px-4 py-3 border border-gray-800 rounded-xl hover:bg-gray-800 hover:border-gray-700 transition-all active:scale-[0.98] bg-gray-950/50 group"
+              className="flex items-center justify-center border border-charcoal rounded-xl hover:bg-charcoal text-white transition-all bg-glanz-black/50 py-2.5"
             >
-              <svg className="w-5 h-5 mr-2 text-blue-500 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              <svg className="w-4 h-4 mr-2 fill-[#1877F2]" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
               </svg>
               Facebook
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

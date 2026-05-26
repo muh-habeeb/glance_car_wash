@@ -1,7 +1,7 @@
 /**
- * Copyright © GLANCE
+ * Copyright © GLANZ
  * Author: habeeb
- * Contact: muhhabeeb787+glanceautor@gmail.com
+ * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
 import { prisma } from "../config/prisma.js";
@@ -17,7 +17,7 @@ import logger from "../utils/logger.js";
 export const initSuperAdmin = async (): Promise<void> => {
   try {
     const { SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD } = env;
-    
+
     // Hash the password exactly as we do for normal users (12 rounds)
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(SUPERADMIN_PASSWORD, salt);
@@ -32,7 +32,7 @@ export const initSuperAdmin = async (): Promise<void> => {
 
     if (existingSuperAdmins.length > 0) {
       primaryAdmin = existingSuperAdmins[0];
-      
+
       // Update primary admin details
       primaryAdmin = await prisma.user.update({
         where: { id: primaryAdmin.id },

@@ -1,7 +1,7 @@
 /**
- * Copyright © GLANCE
+ * Copyright © GLANZ
  * Author: habeeb
- * Contact: muhhabeeb787+glanceautor@gmail.com
+ * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
 import "dotenv/config";
@@ -75,6 +75,7 @@ export const env = createEnv({
     SMTP_PORT: z.string().default("587"),
     SMTP_USER: z.email(),
     SMTP_PASS: z.string().min(1),
+    SUPPORT_EMAIL: z.email()
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

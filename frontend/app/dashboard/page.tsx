@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useSession, signOut, authClient } from "../../lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { env } from "@/utils/env";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = "profile" | "security" | "danger";
@@ -139,7 +140,7 @@ export default function Dashboard() {
       }
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3500"}/api/users/profile`,
+        `${env.NEXT_PUBLIC_SERVER_URL!}/api/users/profile`,
         {
           method: "PATCH",
           credentials: "include",
@@ -222,7 +223,7 @@ export default function Dashboard() {
         type: "success",
         text: "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
       });
-      setTimeout(() => signOut({ callbackURL: "/" }), 3000);
+      setTimeout(() => signOut().then(() => router.push("/")), 2000);
     } catch (err: any) {
       // If the message contains our custom 7-day message it's actually a success
       if (err.message?.includes("7 days") || err.message?.includes("scheduled")) {
@@ -230,7 +231,7 @@ export default function Dashboard() {
           type: "success",
           text: "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
         });
-        setTimeout(() => signOut({ callbackURL: "/" }), 3000);
+        setTimeout(() => signOut().then(() => router.push("/")), 3000);
       } else {
         setDelMsg({ type: "error", text: err.message || "Failed to delete account." });
       }
@@ -287,7 +288,7 @@ export default function Dashboard() {
             </div>
           </div>
           <button
-            onClick={() => signOut({ callbackURL: "/login" })}
+            onClick={() => signOut().then(() => router.push("/login"))}
             className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold px-4 py-2 rounded-xl transition-all text-sm active:scale-[0.97]"
           >
             Log Out

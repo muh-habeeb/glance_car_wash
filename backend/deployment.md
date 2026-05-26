@@ -1,4 +1,4 @@
-# Glance Car Wash Backend - Deployment Guide
+# Glanz Car Wash Backend - Deployment Guide
 
 This guide explains how to successfully configure, start, and run the backend server along with its supporting Docker services (GlitchTip, Postgres, Redis).
 

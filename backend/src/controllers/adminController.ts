@@ -1,7 +1,7 @@
 /**
- * Copyright © GLANCE
+ * Copyright © GLANZ
  * Author: habeeb
- * Contact: muhhabeeb787+glanceautor@gmail.com
+ * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
 import { Response } from "express";
@@ -25,7 +25,7 @@ const forceDeleteSchema = z.object({
 });
 
 const forceDeleteManySchema = z.object({
-  userIds: z.array(z.string().trim().uuid()).min(1, "At least one user ID is required"),
+  userIds: z.array(z.string().trim().min(1, "User ID cannot be empty")).min(1, "At least one user ID is required"),
   adminPassword: z.string().min(1, "Admin password is required to perform a force delete"),
 });
 
@@ -80,20 +80,23 @@ export const getAllUsers = async (req: AuthenticatedRequest, res: Response): Pro
           phone: true,
           whatsapp: true,
           is_active: true,
+          role: true,
+          emailVerified: true,
+          createdAt: true,
         },
         orderBy: { createdAt: "desc" }
       })
     ]);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       pagination: {
         total: totalUsers,
         page,
         limit,
         totalPages: Math.ceil(totalUsers / limit)
       },
-      users 
+      users
     });
   } catch (error) {
     req.log?.error(error);
@@ -114,9 +117,9 @@ export const updateUserById = async (req: AuthenticatedRequest, res: Response): 
     // Strict Role Escalation Check
     if (validatedData.role === "ADMIN" || validatedData.role === "SUPERADMIN") {
       if (activeUserRole !== "SUPERADMIN") {
-        res.status(403).json({ 
-          success: false, 
-          message: "Permission denied. Only a Super Admin can promote a user to Admin or Super Admin level." 
+        res.status(403).json({
+          success: false,
+          message: "Permission denied. Only a Super Admin can promote a user to Admin or Super Admin level."
         });
         return;
       }
@@ -220,9 +223,9 @@ export const deleteUserById = async (req: AuthenticatedRequest, res: Response): 
       });
     });
 
-    res.status(200).json({ 
-      success: true, 
-      message: `User ${targetUser.name} has been forcibly deactivated.` 
+    res.status(200).json({
+      success: true,
+      message: `User ${targetUser.name} has been forcibly deactivated.`
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -311,9 +314,9 @@ export const deleteManyById = async (req: AuthenticatedRequest, res: Response): 
       }
     });
 
-    res.status(200).json({ 
-      success: true, 
-      message: `Successfully deactivated ${targetUsers.length} user(s).` 
+    res.status(200).json({
+      success: true,
+      message: `Successfully deactivated ${targetUsers.length} user(s).`
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -373,15 +376,15 @@ export const getAllDeletedUsers = async (req: AuthenticatedRequest, res: Respons
       })
     ]);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       pagination: {
         total: totalPending,
         page,
         limit,
         totalPages: Math.ceil(totalPending / limit)
       },
-      pendingDeletions 
+      pendingDeletions
     });
   } catch (error) {
     req.log?.error(error);
@@ -426,9 +429,9 @@ export const restoreDeletedUser = async (req: AuthenticatedRequest, res: Respons
     // If self-deleted, force admin to confirm via email typing
     if (!deletionRecord.forceDelete) {
       if (!confirmEmail || confirmEmail !== deletionRecord.email) {
-        res.status(400).json({ 
-          success: false, 
-          message: "This user deleted themselves. You must provide their exact 'confirmEmail' to override their decision and restore the account." 
+        res.status(400).json({
+          success: false,
+          message: "This user deleted themselves. You must provide their exact 'confirmEmail' to override their decision and restore the account."
         });
         return;
       }
@@ -447,9 +450,9 @@ export const restoreDeletedUser = async (req: AuthenticatedRequest, res: Respons
       });
     });
 
-    res.status(200).json({ 
-      success: true, 
-      message: `User ${deletionRecord.name} has been successfully restored.` 
+    res.status(200).json({
+      success: true,
+      message: `User ${deletionRecord.name} has been successfully restored.`
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

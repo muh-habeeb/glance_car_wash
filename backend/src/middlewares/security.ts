@@ -1,7 +1,7 @@
 /**
- * Copyright © GLANCE
+ * Copyright © GLANZ
  * Author: habeeb
- * Contact: muhhabeeb787+glanceautor@gmail.com
+ * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
 import helmet from "helmet";
@@ -38,17 +38,17 @@ const generateWwwVariants = (origins: string[]): string[] => {
 export const securityHeaders = helmet({
   contentSecurityPolicy: env.NODE_ENV === "production"
     ? {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", "data:"],
-          // Restrict API connect requests to only trusted origins from ALLOWED_HELMET_URL and self,
-          // including both www and non-www variations automatically for security.
-          connectSrc: ["'self'", ...generateWwwVariants(env.ALLOWED_HELMET_URL)],
-          upgradeInsecureRequests: [],
-        },
-      }
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"],
+        // Restrict API connect requests to only trusted origins from ALLOWED_HELMET_URL and self,
+        // including both www and non-www variations automatically for security.
+        connectSrc: ["'self'", ...generateWwwVariants(env.ALLOWED_HELMET_URL)],
+        upgradeInsecureRequests: [],
+      },
+    }
     : false, // Next.js dev server may need CSP disabled in local dev, customized if in production
   crossOriginEmbedderPolicy: env.NODE_ENV === "production",
   crossOriginOpenerPolicy: { policy: "same-origin" },

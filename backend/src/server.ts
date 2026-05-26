@@ -1,10 +1,11 @@
 /**
- * Copyright © GLANCE
+ * Copyright © GLANZ
  * Author: habeeb
- * Contact: muhhabeeb787+glanceautor@gmail.com
+ * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
 /* eslint-disable no-console */
+import path from "path";
 import express from "express";
 import cookieParser from "cookie-parser";
 import {
@@ -35,11 +36,11 @@ initDeletionSweeper();
 initSuperAdmin();
 
 // Conditionally Initialize Sentry 
-if (env.ENABLE_SENTRY==true && env.SENTRY_DSN) {
+if (env.ENABLE_SENTRY == true && env.SENTRY_DSN) {
   Sentry.init({
     dsn: env.SENTRY_DSN,
   });
-}else{
+} else {
   console.log("sentry logging disabled")
 }
 
@@ -55,6 +56,9 @@ if (env.NODE_ENV === "production") {
 // 1. Hook up core security headers and custom headers
 app.use(securityHeaders);
 app.use(customSecurityHeaders);
+
+// Serve static assets (e.g. logos)
+app.use("/assets", express.static(path.join(process.cwd(), "src/assets")));
 
 // 1.5. Request Logging (Must be before routes)
 app.use(loggerMiddleware);
@@ -121,7 +125,7 @@ const PORT = env.PORT;
 const server = app.listen(PORT, () => {
 
   console.log(`=============================================`);
-  console.log(`  GLANCE CAR WASH - SECURE SERVER STARTED    `);
+  console.log(`  GLANZ CAR WASH - SECURE SERVER STARTED    `);
   console.log(`  Port:        ${PORT}                          `);
   console.log(`  Environment: ${env.NODE_ENV}                  `);
   console.log(`=============================================`);

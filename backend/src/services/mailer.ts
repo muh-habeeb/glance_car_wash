@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import path from "path";
 import { env } from "../config/env.js";
 import { getResetPasswordTemplate } from "../templates/resetPasswordTemplate.js";
 import { getVerifyEmailTemplate } from "../templates/verifyEmailTemplate.js";
@@ -16,6 +17,20 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Configure CID inline logo attachments so email clients render them locally without external HTTP request blocks
+const getLogoAttachments = () => [
+  {
+    filename: "gold_logo.png",
+    path: path.join(process.cwd(), "src/assets/logo/gold_logo.png"),
+    cid: "gold_logo",
+  },
+  {
+    filename: "white_logo.png",
+    path: path.join(process.cwd(), "src/assets/logo/white_logo.png"),
+    cid: "white_logo",
+  },
+];
+
 /**
  * Sends a password reset email using the premium black/gold HTML template
  */
@@ -24,10 +39,11 @@ export const sendResetPasswordEmail = async (to: string, name: string, resetUrl:
     const htmlContent = getResetPasswordTemplate(name, resetUrl);
     
     await transporter.sendMail({
-      from: `"Glance Premium Car Wash" <${env.SMTP_USER}>`,
+      from: `"Glanz Premium Car Wash" <${env.SMTP_USER}>`,
       to,
-      subject: "Reset Your Password - Glance Premium Car Wash",
+      subject: "Reset Your Password - Glanz Premium Car Wash",
       html: htmlContent,
+      attachments: getLogoAttachments(),
     });
     
     logger.info(`Password reset email successfully sent to ${to}`);
@@ -44,16 +60,16 @@ export const sendVerificationEmail = async (to: string, name: string, verifyUrl:
     const htmlContent = getVerifyEmailTemplate(name, verifyUrl);
     
     await transporter.sendMail({
-      from: `"Glance Premium Car Wash" <${env.SMTP_USER}>`,
+      from: `"Glanz Premium Car Wash" <${env.SMTP_USER}>`,
       to,
-      subject: "Activate Your Account - Glance Premium Car Wash",
+      subject: "Activate Your Account - Glanz Premium Car Wash",
       html: htmlContent,
+      attachments: getLogoAttachments(),
     });
     
     logger.info(`Email verification link successfully sent to ${to}`);
   } catch (error) {
     logger.error(error, `Failed to send email verification to ${to}:`);
-
   }
 };
 
@@ -65,10 +81,11 @@ export const sendDeleteAccountEmail = async (to: string, name: string, scheduled
     const htmlContent = getDeleteAccountTemplate(name, scheduledDate);
 
     await transporter.sendMail({
-      from: `"Glance Premium Car Wash" <${env.SMTP_USER}>`,
+      from: `"Glanz Premium Car Wash" <${env.SMTP_USER}>`,
       to,
-      subject: "Account Deletion Scheduled — Glance Premium Car Wash",
+      subject: "Account Deletion Scheduled — Glanz Premium Car Wash",
       html: htmlContent,
+      attachments: getLogoAttachments(),
     });
 
     logger.info(`Account deletion warning email sent to ${to}`);

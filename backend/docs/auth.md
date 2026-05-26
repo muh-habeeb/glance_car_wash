@@ -1,147 +1,399 @@
-# Glance Car Wash - Authentication & User API Documentation
+# Glanz Premium Car Wash - Authentication & User API Reference
 
-## 🔐 Authentication Strategies
-The API supports an industry-standard dual-authentication strategy, allowing flexibility for both web browsers and mobile applications.
+This document provides a comprehensive guide to the authentication and user profile APIs for the **Glanz Premium Car Wash** application. 
 
-### 1. HTTP-Only Cookies (Best for Web Browsers)
-When a user logs in, the server automatically sets two secure, HTTP-only cookies (`accessToken` and `refreshToken`). 
-- **Advantage:** Browsers handle these automatically. You do not need to manually attach tokens to your requests. They are immune to XSS attacks.
-
-### 2. Bearer Tokens (Best for Mobile Apps)
-The login and refresh endpoints also return the raw `accessToken` and `refreshToken` in the JSON payload.
-- **Advantage:** Mobile apps (Flutter, React Native) can securely store these tokens (e.g., in SecureStorage) and manually attach them to API requests using the `Authorization: Bearer <token>` header.
-- The server automatically checks cookies first, and gracefully falls back to checking the Bearer header if no cookies are found.
+The backend uses **Better Auth v1.6.11** for secure, session-based authentication (managing scrypt hashing, secure cookies, and CSRF protection) alongside custom Express routes for profile management.
 
 ---
 
-## 🛣️ API Routes
+## 🔐 Core Authentication Concepts
 
-All user routes are prefixed with `/api/users`.
+### 1. Secure Sessions & Cookies (Recommended for Web)
+When a user signs in, Better Auth sets HTTP-only, secure, same-site session cookies automatically. 
+* **Handling:** Modern web browsers automatically capture, store, and send these cookies with every subsequent request. You do not need to manually read or attach them in the frontend client.
 
-### 1. Register User
-- **Method:** `POST`
-- **Endpoint:** `/api/users/`
-- **Access:** Public
-- **Description:** Creates a new user account.
+### 2. Bearer / Authorization Header (For Mobile / Testing Clients)
+External clients (like Flutter, React Native, or testing applications) can fetch and pass the session token manually.
+* Pass the session token in the request headers:
+  ```http
+  Authorization: Bearer <your_session_token>
+  ```
 
-**Payload:**
-| Field      | Type   | Status     | Validation Rules |
-|------------|--------|------------|------------------|
-| `name`     | String | **Required** | Minimum 2 characters |
-| `email`    | String | **Required** | Valid email format |
-| `password` | String | **Required** | Minimum 6 characters |
-| `phone`    | String | **Required** | International format (e.g., `+971501234567`) |
-| `whatsapp` | String | Optional   | International format (e.g., `+971501234567`) |
+### ⚠️ IMPORTANT: The `MISSING_OR_NULL_ORIGIN` CSRF Guard
+Better Auth has native **CSRF protection** enabled. By default, it requires that any write requests (`POST`, `PATCH`, `DELETE`) carry a valid `Origin` header that matches one of its registered trusted origins (configured in the backend `.env` under `CORS_ORIGIN`).
 
-### 2. Login User
-- **Method:** `POST`
-- **Endpoint:** `/api/users/login`
-- **Access:** Public
-- **Description:** Authenticates a user and issues JWT tokens.
-
-**Payload:**
-| Field      | Type   | Status     | Validation Rules |
-|------------|--------|------------|------------------|
-| `email`    | String | **Required** | Valid email format |
-| `password` | String | **Required** | Must not be empty |
-
-**Response:** Sets secure cookies and returns tokens in JSON format.
-
-### 3. Get Profile
-- **Method:** `GET`
-- **Endpoint:** `/api/users/`
-- **Access:** Private (Requires Token)
-- **Description:** Retrieves the logged-in user's safe profile details.
-
-### 4. Update Profile
-- **Method:** `PATCH`
-- **Endpoint:** `/api/users/`
-- **Access:** Private (Requires Token)
-- **Description:** Updates the logged-in user's profile. Strict Row-Level Security prevents editing other users. Cannot update restricted fields (`role`, `is_active`, `id`, `email`).
-
-**Payload (All fields are optional, send only what you want to update):**
-| Field             | Type   | Status       | Validation Rules |
-|-------------------|--------|--------------|------------------|
-| `name`            | String | Optional     | Minimum 2 characters |
-| `phone`           | String | Optional*    | International format (`+971...`) |
-| `whatsapp`        | String | Optional     | International format (`+971...`) |
-| `password`        | String | Optional**   | Minimum 6 characters |
-| `confirmPassword` | String | Required**   | Must match `password` exactly |
-| `currentPassword` | String | Required**   | Must match DB password |
-
-*\* Note: Even though `phone` is required during registration, you do not need to send it during a PATCH request unless you are actively changing it.*
-*\*\* Note: If you choose to update your `password`, the `currentPassword` and `confirmPassword` fields instantly become **strictly required**.*
-
-### 5. Refresh Token
-- **Method:** `POST`
-- **Endpoint:** `/api/users/refresh`
-- **Access:** Public (Requires valid Refresh Token)
-- **Description:** Generates a new 7-minute `accessToken` using the long-lived 7-day `refreshToken`.
-
-### 6. Delete Account (Soft Delete)
-- **Method:** `DELETE`
-- **Endpoint:** `/api/users/`
-- **Access:** Private (Requires Token)
-- **Description:** Requests a permanent account deletion. The account is immediately deactivated and the user is logged out. The account will be permanently deleted after a 7-day grace period. If the user logs back in during this 7-day window, the deletion request is cancelled and the account is restored.
-
-**Payload:**
-| Field      | Type   | Status     | Validation Rules |
-|------------|--------|------------|------------------|
-| `password` | String | **Required** | Must match current password to confirm deletion |
-
-### 7. Logout
-- **Method:** `POST`
-- **Endpoint:** `/api/users/logout`
-- **Access:** Public
-- **Description:** Clears the secure authentication cookies.
+When testing endpoints from **Postman**, **Thunder Client**, or **curl**, you must manually add the `Origin` header to avoid a `403 Forbidden` error:
+* **Header Key:** `Origin`
+* **Header Value:** `http://localhost:3000` *(or your registered frontend URL)*
 
 ---
 
-## 🧪 Testing Guide (Postman / Insomnia)
+## 🛣️ API Endpoints Directory
 
-### Testing via Cookies (Automated)
-1. Hit `POST /api/users/login` with your credentials.
-2. Ensure your testing client is configured to "Save Cookies" automatically.
-3. Hit `GET /api/users/` - it will succeed because the client automatically attached the secure cookie.
+### 🚪 Authentication Routes (`/api/auth/*`)
+All authentication endpoints are managed natively by Better Auth, running on top of Express.
 
-### Testing via Bearer Token (Manual)
-1. Hit `POST /api/users/login` with your credentials.
-2. Look at the JSON response body and copy the `accessToken` string.
-3. Open a new request to `GET /api/users/`.
-4. Go to the **Headers** tab (or Auth tab).
-5. Add `Authorization` as the key, and `Bearer YOUR_COPIED_TOKEN_HERE` as the value.
-6. Send the request. It will succeed!
+### 👤 Profile Routes (`/api/users/*`)
+All custom user profile interactions are prefixed with `/api/users`.
 
 ---
 
-## 📱 Mobile App Integration Guide (Flutter / React Native)
+## 🔑 Authentication Endpoints Reference & JSON Payloads
 
-Mobile applications do not handle HTTP-Only cookies automatically like web browsers do. For mobile apps, you must use the **Bearer Token** architecture to maintain high security.
+### 1. Sign Up (Email & Password)
+Registers a new user account. Due to project validation constraints, a valid **phone number** is strictly required during credentials signup.
 
-### 1. Secure Storage
-When a user logs in via `POST /api/users/login`, you will receive the tokens in the JSON response:
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/sign-up/email`
+* **Headers:** 
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000` (required for testing clients)
+* **Request JSON:**
+```json
+{
+  "name": "Habeeb Rahman",
+  "email": "habeeb@example.com",
+  "password": "SuperSecurePassword123!",
+  "phone": "+971501234567",
+  "whatsapp": "+971501234568",
+  "callbackURL": "/dashboard"
+}
+```
+* **Success Response (200 OK):**
+```json
+{
+  "token": "session_token_here",
+  "user": {
+    "id": "user_uuid_here",
+    "name": "Habeeb Rahman",
+    "email": "habeeb@example.com",
+    "emailVerified": false,
+    "phone": "+971501234567",
+    "whatsapp": "+971501234568",
+    "role": "USER",
+    "is_active": true,
+    "createdAt": "2026-05-26T13:00:00.000Z",
+    "updatedAt": "2026-05-26T13:00:00.000Z"
+  }
+}
+```
+* **Notes:** This triggers a background verification email to the user.
+
+---
+
+### 2. Sign In (Email & Password)
+Authenticates a user and starts a secure session.
+
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/sign-in/email`
+* **Headers:** 
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{
+  "email": "habeeb@example.com",
+  "password": "SuperSecurePassword123!"
+}
+```
+* **Success Response (200 OK):**
+```json
+{
+  "token": "session_token_here",
+  "user": {
+    "id": "user_uuid_here",
+    "name": "Habeeb Rahman",
+    "email": "habeeb@example.com",
+    "emailVerified": false,
+    "phone": "+971501234567",
+    "whatsapp": "+971501234568",
+    "role": "USER",
+    "is_active": true
+  }
+}
+```
+
+---
+
+### 3. Get Active Session & User Info
+Retrieves details of the currently logged-in session.
+
+* **Method:** `GET`
+* **Endpoint:** `/api/auth/get-session`
+* **Headers:** 
+  * `Authorization: Bearer <session_token>` *(or use automatically sent cookies)*
+* **Success Response (200 OK):**
+```json
+{
+  "session": {
+    "id": "session_id_here",
+    "userId": "user_uuid_here",
+    "expiresAt": "2026-06-02T13:00:00.000Z",
+    "ipAddress": "127.0.0.1",
+    "userAgent": "PostmanRuntime/7.40.0"
+  },
+  "user": {
+    "id": "user_uuid_here",
+    "name": "Habeeb Rahman",
+    "email": "habeeb@example.com",
+    "emailVerified": false,
+    "phone": "+971501234567",
+    "whatsapp": "+971501234568",
+    "role": "USER",
+    "is_active": true
+  }
+}
+```
+
+---
+
+### 4. Request Password Reset (Forgot Password)
+Sends a password reset email containing a secure token.
+
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/request-password-reset`
+* **Headers:** 
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{
+  "email": "habeeb@example.com",
+  "redirectTo": "http://localhost:3000/reset-password"
+}
+```
+* **Success Response (200 OK):**
+```json
+{
+  "status": true
+}
+```
+* **Notes:** Generates a custom black-and-gold themed reset email using Glanz Premium styling.
+
+---
+
+### 5. Reset Password (Using Reset Token)
+Performs the password reset using the token obtained from the email link.
+
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/reset-password`
+* **Headers:** 
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{
+  "newPassword": "MyBrandNewSuperPassword456!",
+  "token": "token_string_extracted_from_email_url"
+}
+```
+* **Success Response (200 OK):**
+```json
+{
+  "status": true
+}
+```
+
+---
+
+### 6. Change Password (Authenticated Session)
+Changes the logged-in user's password.
+
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/change-password`
+* **Headers:** 
+  * `Authorization: Bearer <session_token>`
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{
+  "currentPassword": "SuperSecurePassword123!",
+  "newPassword": "MyBrandNewSuperPassword456!",
+  "revokeOtherSessions": true
+}
+```
+* **Success Response (200 OK):**
+```json
+{
+  "status": true
+}
+```
+
+---
+
+### 7. Change Email (Authenticated Session)
+Initiates an email update. Senders an verification code/email to the new address before completing the swap.
+
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/change-email`
+* **Headers:** 
+  * `Authorization: Bearer <session_token>`
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{
+  "newEmail": "habeeb.new@example.com",
+  "callbackURL": "/dashboard"
+}
+```
+* **Success Response (200 OK):**
+```json
+{
+  "status": true
+}
+```
+
+---
+
+### 8. Delete Account (7-Day Soft Delete Guard)
+Schedules account deletion. Inactive status is applied immediately, preventing logins. Complete deletion occurs after 7 days, unless aborted by logging back in.
+
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/delete-user`
+* **Headers:** 
+  * `Authorization: Bearer <session_token>`
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{
+  "password": "MyBrandNewSuperPassword456!"
+}
+```
+* **Expected Response (400 Bad Request containing JSON error details):**
+```json
+{
+  "message": "Account deletion has been scheduled. Your account will be permanently deleted in 7 days. Log back in before then to cancel.",
+  "code": "OK"
+}
+```
+* **Notes:** Under the hood, this intercepts Better Auth's core delete function, flags `is_active = false`, creates an `AccountDeletion` schedule in the database, sends a black/gold email notification, and throws the `OK` error to abort a permanent system-wide deletion until the 7-day period expires.
+
+---
+
+### 9. Sign Out
+Terminates the current active session.
+
+* **Method:** `POST`
+* **Endpoint:** `/api/auth/sign-out`
+* **Headers:** 
+  * `Authorization: Bearer <session_token>`
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{}
+```
+* **Success Response (200 OK):**
+```json
+{
+  "status": true
+}
+```
+
+---
+
+## 👤 Custom User Profile Endpoints & JSON Payloads
+
+These endpoints handle standard profile information updates.
+
+### 1. Get Profile Details
+Fetches public and non-critical profile fields for the authenticated user.
+
+* **Method:** `GET`
+* **Endpoint:** `/api/users/profile`
+* **Headers:**
+  * `Authorization: Bearer <session_token>` *(or session cookie)*
+* **Success Response (200 OK):**
 ```json
 {
   "success": true,
-  "message": "Login successful",
-  "accessToken": "eyJh...",
-  "refreshToken": "eyJh..."
+  "user": {
+    "name": "Habeeb Rahman",
+    "email": "habeeb@example.com",
+    "phone": "+971501234567",
+    "whatsapp": "+971501234568",
+    "role": "USER",
+    "is_active": true,
+    "image": "https://lh3.googleusercontent.com/a/...",
+    "emailVerified": true
+  }
 }
 ```
-**CRITICAL:** Immediately store both tokens in a secure vault (e.g., `flutter_secure_storage` in Flutter or `Keychain`/`EncryptedSharedPreferences` in React Native). Do not store them in plain text storage like `SharedPreferences`.
 
-### 2. Making Authenticated Requests
-For every API call to a private endpoint (like `GET /api/users/`), you must manually attach the short-lived `accessToken` to the HTTP headers:
-```http
-Authorization: Bearer <your_stored_access_token>
+---
+
+### 2. Update Profile Details (Name, Phone, WhatsApp)
+Allows partial updates to profile fields. Modifying critical fields like `email`, `password`, `role`, or `is_active` via this endpoint is strictly blocked.
+
+* **Method:** `PATCH`
+* **Endpoint:** `/api/users/profile`
+* **Headers:**
+  * `Authorization: Bearer <session_token>`
+  * `Content-Type: application/json`
+  * `Origin: http://localhost:3000`
+* **Request JSON:**
+```json
+{
+  "name": "Habeeb R.",
+  "phone": "+971509999999",
+  "whatsapp": "+971509999999"
+}
 ```
-Our backend will instantly detect this header, validate the token, and process the request.
+* **Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "user": {
+    "name": "Habeeb R.",
+    "email": "habeeb@example.com",
+    "phone": "+971509999999",
+    "whatsapp": "+971509999999",
+    "is_active": true,
+    "image": "https://lh3.googleusercontent.com/a/...",
+    "emailVerified": true
+  }
+}
+```
 
-### 3. Handling Token Expiration (The Refresh Flow)
-Because the `accessToken` expires every 7 minutes, you must handle the silent refresh flow:
-1. Make your standard API request using the `accessToken`.
-2. If the server responds with a `401 Unauthorized` status code, intercept the error.
-3. Secretly pause the user's action and send a request to `POST /api/users/refresh`. Since you are on mobile, you can send the refresh token in the body (if configured) or cookies. *Note: If your mobile HTTP client doesn't automatically pass cookies, you may need to manually extract the Set-Cookie header or we can update the refresh endpoint to accept it via Bearer or Body.*
-4. Retrieve the fresh `accessToken` and `refreshToken` from the response.
-5. Save the new tokens back to Secure Storage.
-6. Automatically retry the original failed request with the new `accessToken`. The user will never know it happened!
+---
+
+## 🧪 Postman & external API Testing Walkthrough
+
+Follow this step-by-step sequence to test your routes inside Postman or Insomnia:
+
+### Step 1: Account Registration
+1. Set method to `POST` and enter URL: `http://localhost:3500/api/auth/sign-up/email`
+2. Add the `Origin` header: `http://localhost:3000`
+3. Add the request JSON (from the Sign Up section) to the body.
+4. Send the request. Copy the `token` value returned in the response.
+
+### Step 2: Login to Create Session
+1. Set method to `POST` and enter URL: `http://localhost:3500/api/auth/sign-in/email`
+2. Add the `Origin` header: `http://localhost:3000`
+3. Add your login credentials JSON to the body.
+4. Send the request. Copy the new `token` string.
+
+### Step 3: Fetch Profile
+1. Set method to `GET` and enter URL: `http://localhost:3500/api/users/profile`
+2. Under the **Headers** tab, add a new key:
+   * **Key:** `Authorization`
+   * **Value:** `Bearer YOUR_COPIED_TOKEN_HERE`
+3. Send the request. You should successfully receive the secure profile payload.
+
+### Step 4: Patch Profile Fields
+1. Set method to `PATCH` and enter URL: `http://localhost:3500/api/users/profile`
+2. Add headers:
+   * `Origin: http://localhost:3000`
+   * `Authorization: Bearer YOUR_COPIED_TOKEN_HERE`
+3. Add the update JSON in the body:
+   ```json
+   {
+     "name": "Tester Name",
+     "phone": "+971507777777"
+   }
+   ```
+4. Send the request to verify the successful update response.

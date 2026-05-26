@@ -71,7 +71,7 @@ export const auth = betterAuth({
         void sendDeleteAccountEmail(user.email, user.name, scheduledFor).catch(() => {});
 
         // Throw to cancel Better Auth's hard delete — our cron handles the real deletion
-        throw new APIError("OK", {
+        throw new APIError("BAD_REQUEST", {
           message:
             "Account deletion has been scheduled. Your account will be permanently deleted in 7 days. Log back in before then to cancel.",
         });
@@ -82,6 +82,16 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
+          // Check if email already exists
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+          if (existingUser) {
+            throw new APIError("BAD_REQUEST", {
+              message: "This email address is already registered.",
+            });
+          }
+
           // Password is set only for Credentials (Email & Password) signups.
           // For those, phone must be mandatory.
           if (user.password && !user.phone) {
@@ -89,6 +99,49 @@ export const auth = betterAuth({
           }
           return {
             data: user
+          };
+        }
+      }
+    },
+    session: {
+      create: {
+        before: async (session) => {
+          const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            include: { accountDeletion: true },
+          });
+
+          if (user && !user.is_active) {
+            const deletion = user.accountDeletion;
+            if (deletion) {
+              if (deletion.forceDelete) {
+                // Suspended by Admin - strictly blocked from logging in
+                throw new APIError("UNAUTHORIZED", {
+                  message: "Your account has been deactivated by an Administrator. Please contact support.",
+                });
+              } else {
+                // Self-deleted - restore immediately on login
+                await prisma.$transaction(async (tx) => {
+                  await tx.user.update({
+                    where: { id: user.id },
+                    data: { is_active: true },
+                  });
+                  await tx.accountDeletion.update({
+                    where: { id: deletion.id },
+                    data: { status: "CANCELLED" },
+                  });
+                });
+              }
+            } else {
+              // Inactive without a deletion record
+              throw new APIError("UNAUTHORIZED", {
+                message: "Your account is deactivated. Please contact an Administrator.",
+              });
+            }
+          }
+
+          return {
+            data: session,
           };
         }
       }
@@ -138,6 +191,48 @@ export const auth = betterAuth({
       : {}),
   },
   plugins: [
-    dash()
+    dash(),
+    {
+      id: "signup-validator",
+      hooks: {
+        before: [
+          {
+            matcher: (context) => context.path === "/sign-up/email",
+            handler: async (context) => {
+              const body = context.body as any;
+              if (body?.email) {
+                const existing = await prisma.user.findUnique({
+                  where: { email: body.email.toLowerCase().trim() }
+                });
+                if (existing) {
+                  throw new APIError("BAD_REQUEST", {
+                    message: "This email address is already registered."
+                  });
+                }
+              }
+            }
+          },
+          {
+            matcher: (context) => 
+              context.path === "/verify-email" || 
+              context.path === "/reset-password",
+            handler: async (context) => {
+              const token = (context.query as any)?.token || (context.body as any)?.token;
+              if (token) {
+                const verification = await prisma.verification.findFirst({
+                  where: { value: token }
+                });
+                
+                if (!verification || verification.expiresAt < new Date()) {
+                  throw new APIError("BAD_REQUEST", {
+                    message: "Security Token Expired or Invalid. Please request a new link."
+                  });
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
   ]
 });

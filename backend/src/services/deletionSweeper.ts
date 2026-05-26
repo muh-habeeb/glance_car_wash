@@ -1,12 +1,12 @@
 /**
- * Copyright © GLANCE
+ * Copyright © GLANZ
  * Author: habeeb
- * Contact: muhhabeeb787+glanceautor@gmail.com
+ * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
 import cron from "node-cron";
 import { prisma } from "../config/prisma.js";
-import logger  from "../utils/logger.js";
+import logger from "../utils/logger.js";
 import { cronSchedules } from "../config/cron.js";
 
 /**

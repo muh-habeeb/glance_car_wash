@@ -1,8 +1,14 @@
+import { env } from "../config/env.js";
+
 /**
- * Copyright © GLANCE PREMIUM CAR WASH
+ * Copyright © GLANZ PREMIUM CAR WASH
  * Premium email template layout wrapper
  */
-export const emailLayout = (content: string, previewText: string = "Glance Premium Car Wash Update"): string => {
+export const emailLayout = (content: string, previewText: string = "Glanz Premium Car Wash Update"): string => {
+  const frontendUrl = env.FRONTEND_URL || "http://localhost:3000";
+  const goldLogoUrl = "cid:gold_logo";
+  const whiteLogoUrl = "cid:white_logo";
+
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -15,49 +21,75 @@ export const emailLayout = (content: string, previewText: string = "Glance Premi
           margin: 0;
           padding: 0;
           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-          background-color: #080808;
-          color: #f3f4f6;
+          background-color: #0B0B0B;
+          color: #ffffff;
           -webkit-font-smoothing: antialiased;
         }
         .container {
           max-width: 600px;
           margin: 0 auto;
-          background-color: #121212;
-          border: 1px solid #1f2937;
+          background-color: #0B0B0B;
+          border: 1px solid #2E2E2E;
           border-radius: 12px;
           overflow: hidden;
         }
         .header {
-          background-color: #000000;
-          padding: 30px 20px;
+          background-color: #0B0B0B;
+          padding: 35px 20px;
           text-align: center;
-          border-bottom: 1px solid #1f2937;
+          border-bottom: 1px solid #2E2E2E;
+        }
+        .logo-img {
+          height: 60px;
+          width: auto;
+          margin-bottom: 15px;
+          display: inline-block;
+          vertical-align: middle;
         }
         .logo-text {
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 800;
           letter-spacing: 2px;
-          color: #d4a943; /* Golden Yellow logo accent */
+          color: #D8AB44;
           text-transform: uppercase;
+          margin: 0;
         }
         .body {
           padding: 40px 30px;
-          background-color: #121212; /* Light Black background */
+          background-color: #0B0B0B;
           line-height: 1.6;
-          color: #e5e7eb; /* Off-white text */
+          color: #ffffff;
         }
         .footer {
-          background-color: #000000;
-          padding: 24px 20px;
+          background-color: #2E2E2E;
+          padding: 30px 20px;
           text-align: center;
-          border-top: 1px solid #1f2937;
-          font-size: 11px;
-          color: #9ca3af;
+          border-top: 1px solid #2E2E2E;
+          font-size: 12px;
+          color: #F5EFE2;
+        }
+        .footer-logo {
+          height: 30px;
+          width: auto;
+          margin-bottom: 15px;
+          display: inline-block;
+        }
+        .footer-links {
+          margin: 15px 0;
+        }
+        .footer-link {
+          color: #D8AB44;
+          text-decoration: none;
+          margin: 0 10px;
+          font-weight: 600;
+        }
+        .footer-link:hover {
+          text-decoration: underline;
         }
         .btn-gold {
           display: inline-block;
-          background-color: #d4a943; /* Golden Yellow */
-          color: #000000 !important;
+          background-color: #D8AB44;
+          color: #0B0B0B !important;
           font-weight: bold;
           text-decoration: none;
           padding: 14px 30px;
@@ -68,7 +100,7 @@ export const emailLayout = (content: string, previewText: string = "Glance Premi
           transition: background-color 0.2s;
         }
         .btn-gold:hover {
-          background-color: #b58d32;
+          background-color: #bfa03f;
         }
       </style>
     </head>
@@ -76,13 +108,14 @@ export const emailLayout = (content: string, previewText: string = "Glance Premi
       <div style="display: none; max-height: 0px; overflow: hidden;">
         ${previewText}
       </div>
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #080808; padding: 20px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0B0B0B; padding: 20px 0;">
         <tr>
           <td>
             <div class="container">
               <!-- Header -->
               <div class="header">
-                <div class="logo-text">GLANCE PREMIUM CAR WASH</div>
+                <img src="${goldLogoUrl}" alt="Glanz Premium Car Wash Logo" class="logo-img" /><br/>
+                <div class="logo-text">GLANZ PREMIUM CAR WASH</div>
               </div>
               
               <!-- Content -->
@@ -92,8 +125,14 @@ export const emailLayout = (content: string, previewText: string = "Glance Premi
               
               <!-- Footer -->
               <div class="footer">
-                <p style="margin: 0 0 10px 0;">© ${new Date().getFullYear()} Glance Premium Car Wash. All rights reserved.</p>
-                <p style="margin: 0;">You are receiving this secure automated email because you registered or requested a credential update.</p>
+                <img src="${whiteLogoUrl}" alt="Glanz Small Logo" class="footer-logo" /><br/>
+                <div class="footer-links">
+                  <a href="${frontendUrl}/privacy" class="footer-link" aria-label="Privacy Policy">Privacy Policy</a>
+                  <span style="color: #666;">|</span>
+                  <a href="${frontendUrl}/terms" class="footer-link" aria-label="Terms of Service">Terms & Conditions</a>
+                </div>
+                <p style="margin: 0 0 10px 0; font-size: 11px; color: #F5EFE2;">© ${new Date().getFullYear()} Glanz Premium Car Wash. All rights reserved.</p>
+                <p style="margin: 0; font-size: 10px; color: #F5EFE2; opacity: 0.8;">You are receiving this secure automated email because you registered or requested a credential update.</p>
               </div>
             </div>
           </td>

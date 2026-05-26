@@ -1,9 +1,12 @@
 {
-  "name": "glance_server",
+  "name": "glanz_server",
   "version": "1.0.0",
-  "description": "glance car services",
+  "description": "glanz car services",
   "type": "module",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
