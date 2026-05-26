@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Image from "next/image";
@@ -199,13 +200,13 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
     }
   };
 
-  const handleChangeEmail = async (e: React.FormEvent) => {
+  const handleChangeEmail = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
-    const emailResult = z.string().email("Invalid email address").safeParse(ceNewEmail);
+    const emailResult = z.email("Invalid email address").safeParse(ceNewEmail);
     if (!emailResult.success) {
-      emailAlert.error(emailResult.error.errors[0].message, 5);
-      toast.error(emailResult.error.errors[0].message);
+      emailAlert.error(emailResult.error.issues[0].message, 5);
+      toast.error(emailResult.error.issues[0].message);
       return;
     }
 
