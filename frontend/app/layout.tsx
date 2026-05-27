@@ -28,7 +28,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("h-full font-sans antialiased", inter.variable)}
     >
-      <body className="min-h-full flex flex-col bg-white dark:bg-glanz-black text-black dark:text-white transition-colors duration-300">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-white dark:bg-glanz-black text-black dark:text-white transition-colors duration-300">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
