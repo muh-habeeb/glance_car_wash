@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ValidatedInput } from "@/components/ui/ValidatedInput";
+import { ConfirmPasswordInput } from "@/components/ui/ConfirmPasswordInput";
 import { z } from "zod";
 
 type Tab = "profile" | "security" | "danger";
@@ -83,7 +84,13 @@ function Field({
 }
 
 const delPasswordSchema = z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters");
-const emailSchema = z.email("enter valid email address");
+const emailSchema = z.string().email("Invalid email address").refine(
+  (email) => {
+    const domain = email.split("@")[1]?.toLowerCase();
+    return domain && !disposableDomains.includes(domain) && !extraBurners.includes(domain);
+  },
+  { message: "Burner emails are not allowed." }
+);
 
 export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerProps) {
   const router = useRouter();
@@ -204,14 +211,6 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
 
   const handleChangeEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const emailSchema = z.string().email("Invalid email address").refine(
-      (email) => {
-        const domain = email.split("@")[1]?.toLowerCase();
-        return domain && !disposableDomains.includes(domain) && !extraBurners.includes(domain);
-      },
-      { message: "Burner emails are not allowed." }
-    );
 
     const emailResult = emailSchema.safeParse(ceNewEmail);
     if (!emailResult.success) {
@@ -516,28 +515,34 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                         placeholder="••••••••"
                         icon={Lock}
                       />
-                      <Field
+                      <ValidatedInput
                         label="New Password"
                         value={cpNew}
-                        onChange={setCpNew}
-                        type="password"
-                        placeholder="Min 6 chars"
-                        icon={Lock}
-                      />
-                      <Field
+                        schema={delPasswordSchema}
+                        isSubmitted={false}
+                      >
+                        <input
+                          type="password"
+                          value={cpNew}
+                          onChange={(e) => setCpNew(e.target.value)}
+                          placeholder="Min 6 chars"
+                          className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold transition-all placeholder-midgray"
+                        />
+                      </ValidatedInput>
+                      <ConfirmPasswordInput
+                        id="cpConfirm"
                         label="Confirm Password"
                         value={cpConfirm}
-                        onChange={setCpConfirm}
-                        type="password"
-                        placeholder="Re-enter password"
-                        icon={Lock}
+                        onValueChange={setCpConfirm}
+                        passwordToMatch={cpNew}
+                        isSubmitted={false}
                       />
                       <SecurityAlertContainer />
 
                       <Button
                         type="submit"
-                        disabled={cpLoading}
-                        className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs"
+                        disabled={cpLoading || !cpCurrent || cpNew.length < 6 || cpNew !== cpConfirm}
+                        className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {cpLoading ? "Updating..." : "Update Password"}
                       </Button>
@@ -575,8 +580,8 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
 
                       <Button
                         type="submit"
-                        disabled={ceLoading}
-                        className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs"
+                        disabled={ceLoading || !emailSchema.safeParse(ceNewEmail).success}
+                        className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {ceLoading ? "Delivering..." : "Deliver Email Verification"}
                       </Button>

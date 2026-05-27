@@ -227,25 +227,6 @@ export const auth = betterAuth({
                 }
               }
             }
-          },
-          {
-            matcher: (context) =>
-              context.path === "/verify-email" ||
-              context.path === "/reset-password",
-            handler: async (context) => {
-              const token = (context.query as any)?.token || (context.body as any)?.token;
-              if (token) {
-                const verification = await prisma.verification.findFirst({
-                  where: { value: token }
-                });
-
-                if (!verification || verification.expiresAt < new Date()) {
-                  throw new APIError("BAD_REQUEST", {
-                    message: "Security Token Expired or Invalid. Please request a new link."
-                  });
-                }
-              }
-            }
           }
         ]
       }
