@@ -17,6 +17,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Verify SMTP connection on startup
+transporter.verify()
+  .then(() => {
+    logger.info("📧 SMTP Transporter is successfully connected and ready to send emails.");
+  })
+  .catch((error) => {
+    logger.error(error, "🚨 SMTP Transporter connection failed! Emails will not be sent. Check your SMTP credentials and port (e.g. use Google App Passwords if using Gmail).");
+  });
+
 // Configure CID inline logo attachments so email clients render them locally without external HTTP request blocks
 const getLogoAttachments = () => [
   {
