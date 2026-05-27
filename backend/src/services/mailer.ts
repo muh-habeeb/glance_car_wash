@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import nodemailer from "nodemailer";
 import path from "path";
 import { env } from "../config/env.js";
@@ -23,10 +24,10 @@ const transporter = nodemailer.createTransport({
 // Verify SMTP connection on startup
 transporter.verify()
   .then(() => {
-    logger.info("📧 SMTP Transporter is successfully connected and ready to send emails.");
+    logger.info("SMTP Transporter is successfully connected and ready to send emails.");
   })
   .catch((error) => {
-    logger.error(error, "🚨 SMTP Transporter connection failed! Emails will not be sent. Check your SMTP credentials and port (e.g. use Google App Passwords if using Gmail).");
+    logger.error(error, "SMTP Transporter connection failed! Emails will not be sent. Check your SMTP credentials and port (e.g. use Google App Passwords if using Gmail).");
   });
 
 // Configure CID inline logo attachments so email clients render them locally without external HTTP request blocks
@@ -61,7 +62,7 @@ export const sendResetPasswordEmail = async (to: string, name: string, resetUrl:
     logger.info(`Password reset email successfully sent to ${to}`);
   } catch (error) {
     logger.error(error, `Failed to send password reset email to ${to}:`);
-    throw new Error("Failed to send password reset email. Please try again later.");
+    console.error("Failed to send password reset email. Please try again later.");
   }
 };
 
@@ -83,7 +84,6 @@ export const sendVerificationEmail = async (to: string, name: string, verifyUrl:
     logger.info(`Verification email successfully sent to ${to}`);
   } catch (error) {
     logger.error(error, `Failed to send verification email to ${to}:`);
-    throw new Error("Failed to send verification email. Please check the SMTP configuration or try again.");
   }
 };
 

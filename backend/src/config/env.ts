@@ -68,7 +68,7 @@ export const env = createEnv({
     CORS_ORIGIN: urlListSchema,
     ALLOWED_HELMET_URL: urlListSchema,
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-    PORT: z.string().default("3500"),
+    PORT: z.number().default(3500),
     JWT_SECRET: z.string().min(8),
     JWT_EXPIRES_IN: z.string().default("15m"),
     JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
