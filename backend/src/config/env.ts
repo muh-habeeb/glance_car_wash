@@ -21,19 +21,15 @@ const urlListSchema = z.string().transform((val) => {
       const url = new URL(origin);
 
       // Enforce security protocol rules:
-      // Production mode MUST be https only. Development/Test mode can be http or https.
-      if (isProd) {
-        if (url.protocol !== "https:") return false;
+      // Development/Test mode and Production can be http or https.
+      if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+      
+      const hostname = url.hostname;
+      const isIP = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(hostname) || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 
-        const hostname = url.hostname;
-        const isIP = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(hostname) || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
-
-        // Strict domain verification for prod URLs (except IP/localhost overrides)
-        if (!isIP && !domainRegex.test(hostname)) {
-          return false;
-        }
-      } else {
-        if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+      // Strict domain verification for URLs (except IP/localhost overrides)
+      if (isProd && !isIP && !domainRegex.test(hostname)) {
+        return false;
       }
     } catch {
       return false;
@@ -41,9 +37,7 @@ const urlListSchema = z.string().transform((val) => {
   }
   return true;
 }, {
-  message: isProd
-    ? "Must be a single secure HTTPS URL, or multiple separated by commas in production."
-    : "Must be a single valid HTTP or HTTPS URL, or multiple separated by commas in development."
+  message: "Must be a single valid HTTP or HTTPS URL, or multiple separated by commas."
 });
 
 export const env = createEnv({

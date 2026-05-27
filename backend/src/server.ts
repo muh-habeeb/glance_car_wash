@@ -23,7 +23,7 @@ import * as Sentry from "@sentry/node";
 import { initDeletionSweeper } from "./services/deletionSweeper.js";
 import { auth } from "./lib/auth.js";
 import { toNodeHandler } from "better-auth/node";
-import { initSuperAdmin } from "./services/superAdminSeeder.js";
+// import { initSuperAdmin } from "./services/superAdminSeeder.js";
 import { prisma } from "./config/prisma.js";
 
 
@@ -34,7 +34,7 @@ const app = express();
 initDeletionSweeper();
 
 // Initialize Super Admin (Upsert from env)
-initSuperAdmin(); // Commented out as requested
+// initSuperAdmin(); // Commented out as requested
 
 // Database connection polling system
 const startDatabasePolling = async () => {
