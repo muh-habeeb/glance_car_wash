@@ -4,7 +4,7 @@
  * Contact: muhhabeeb787+glanzautor@gmail.com
  */
 
-import { PrismaClient } from "../generated/client/index.js";
+import { PrismaClient } from "@prisma/client";
 import { env } from "./env.js";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
