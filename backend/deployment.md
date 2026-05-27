@@ -30,7 +30,7 @@ Instead of self-hosting, we use [Sentry.io](https://sentry.io) for fully-managed
    ```
 
 ## 4. Database Initialization
-With your Postgres container running, you need to sync your Prisma schema to the database.
+With your Neon Postgres cloud database running, you need to sync your Prisma schema to the database.
 
 1. Generate the Prisma Client:
    ```bash
@@ -40,7 +40,7 @@ With your Postgres container running, you need to sync your Prisma schema to the
    ```bash
    npm run db:push
    ```
-   *(Note: In a true production environment, you should use `npm run db:deploy` with migrations).*
+   *(Note: The `DATABASE_URL` in `.env` is already configured for the production Neon database. In a true production CI/CD environment, you should use `npx prisma migrate deploy` with migrations instead of db:push).*
 
 ## 5. Starting the Backend Server
 
