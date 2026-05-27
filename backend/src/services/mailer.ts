@@ -11,6 +11,9 @@ const transporter = nodemailer.createTransport({
   host: env.SMTP_HOST,
   port: parseInt(env.SMTP_PORT, 10),
   secure: env.SMTP_PORT === "465", // true for 465, false for 587
+  connectionTimeout: 5000, // 5 seconds to prevent hanging
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
   auth: {
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
@@ -58,6 +61,7 @@ export const sendResetPasswordEmail = async (to: string, name: string, resetUrl:
     logger.info(`Password reset email successfully sent to ${to}`);
   } catch (error) {
     logger.error(error, `Failed to send password reset email to ${to}:`);
+    throw new Error("Failed to send password reset email. Please try again later.");
   }
 };
 
@@ -71,14 +75,15 @@ export const sendVerificationEmail = async (to: string, name: string, verifyUrl:
     await transporter.sendMail({
       from: `"Glanz Premium Car Wash" <${env.SMTP_USER}>`,
       to,
-      subject: "Activate Your Account - Glanz Premium Car Wash",
+      subject: "Verify Your Email - Glanz Premium Car Wash",
       html: htmlContent,
       attachments: getLogoAttachments(),
     });
     
-    logger.info(`Email verification link successfully sent to ${to}`);
+    logger.info(`Verification email successfully sent to ${to}`);
   } catch (error) {
-    logger.error(error, `Failed to send email verification to ${to}:`);
+    logger.error(error, `Failed to send verification email to ${to}:`);
+    throw new Error("Failed to send verification email. Please check the SMTP configuration or try again.");
   }
 };
 

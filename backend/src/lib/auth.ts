@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { dash } from "@better-auth/infra";
 import { betterAuth } from "better-auth";
@@ -175,8 +176,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, token }) => {
       const frontendUrl = env.FRONTEND_URL;
       const customUrl = `${frontendUrl}/login?verifyToken=${token}`;
-      // Fire-and-forget email to prevent SMTP connection timeouts from hanging the signup flow
-      sendVerificationEmail(user.email, user.name, customUrl).catch(e => console.error("Email send failed:", e));
+      await sendVerificationEmail(user.email, user.name, customUrl);
     },
   },
   emailAndPassword: {
@@ -185,8 +185,7 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, token }) => {
       const frontendUrl = env.FRONTEND_URL;
       const customUrl = `${frontendUrl}/reset-password?token=${token}`;
-      // Fire-and-forget email to prevent SMTP connection timeouts from hanging the API
-      sendResetPasswordEmail(user.email, user.name, customUrl).catch(e => console.error("Reset email send failed:", e));
+      await sendResetPasswordEmail(user.email, user.name, customUrl);
     },
     password: {
       hash: async (password) => {
