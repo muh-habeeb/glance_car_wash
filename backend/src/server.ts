@@ -117,7 +117,7 @@ app.use("/api/admin", adminRoutes);
 
 
 // Test Route: Public
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     environment: env.NODE_ENV,
