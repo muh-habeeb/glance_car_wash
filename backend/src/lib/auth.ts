@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { dash } from "@better-auth/infra";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -5,8 +6,11 @@ import { APIError } from "better-auth/api";
 import { prisma } from "../config/prisma.js";
 import { env } from "../config/env.js";
 import { sendResetPasswordEmail, sendVerificationEmail, sendDeleteAccountEmail } from "../services/mailer.js";
+import disposableDomains from "disposable-email-domains";
+import { extraBurners } from "./burnerDomains.js";
 
 export const auth = betterAuth({
+
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -68,7 +72,7 @@ export const auth = betterAuth({
         });
 
         // Send 7-day deletion warning email (fire-and-forget)
-        void sendDeleteAccountEmail(user.email, user.name, scheduledFor).catch(() => {});
+        void sendDeleteAccountEmail(user.email, user.name, scheduledFor).catch(() => { });
 
         // Throw to cancel Better Auth's hard delete — our cron handles the real deletion
         throw new APIError("BAD_REQUEST", {
@@ -82,6 +86,14 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
+          // Check for burner emails
+          const emailDomain = user.email.split('@')[1]?.toLowerCase();
+          if (emailDomain && (disposableDomains.includes(emailDomain) || extraBurners.includes(emailDomain))) {
+            throw new APIError("BAD_REQUEST", {
+              message: "Registration rejected. Burner emails are not allowed.",
+            });
+          }
+
           // Check if email already exists
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email },
@@ -151,15 +163,19 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   emailVerification: {
     sendOnSignUp: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      await sendVerificationEmail(user.email, user.name, url);
+    sendVerificationEmail: async ({ user, token }) => {
+      const frontendUrl = Array.isArray(env.CORS_ORIGIN) ? env.CORS_ORIGIN[0] : env.CORS_ORIGIN;
+      const customUrl = `${frontendUrl}/login?verifyToken=${token}`;
+      await sendVerificationEmail(user.email, user.name, customUrl);
     },
   },
-  emailAndPassword: { 
-    enabled: true, 
+  emailAndPassword: {
+    enabled: true,
     requireEmailVerification: true,
-    sendResetPassword: async ({ user, url }) => {
-      await sendResetPasswordEmail(user.email, user.name, url);
+    sendResetPassword: async ({ user, token }) => {
+      const frontendUrl = Array.isArray(env.CORS_ORIGIN) ? env.CORS_ORIGIN[0] : env.CORS_ORIGIN;
+      const customUrl = `${frontendUrl}/reset-password?token=${token}`;
+      await sendResetPasswordEmail(user.email, user.name, customUrl);
     },
     password: {
       hash: async (password) => {
@@ -213,8 +229,8 @@ export const auth = betterAuth({
             }
           },
           {
-            matcher: (context) => 
-              context.path === "/verify-email" || 
+            matcher: (context) =>
+              context.path === "/verify-email" ||
               context.path === "/reset-password",
             handler: async (context) => {
               const token = (context.query as any)?.token || (context.body as any)?.token;
@@ -222,7 +238,7 @@ export const auth = betterAuth({
                 const verification = await prisma.verification.findFirst({
                   where: { value: token }
                 });
-                
+
                 if (!verification || verification.expiresAt < new Date()) {
                   throw new APIError("BAD_REQUEST", {
                     message: "Security Token Expired or Invalid. Please request a new link."

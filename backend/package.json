@@ -5,11 +5,11 @@
   "type": "module",
   "main": "dist/server.js",
   "engines": {
-    "node": ">=24"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "prisma": "prisma",
     "lint": "eslint",
@@ -34,8 +34,10 @@
     "@t3-oss/env-core": "^0.13.11",
     "bcrypt": "^6.0.0",
     "better-auth": "^1.6.11",
+    "burner-email-providers": "^1.0.67",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "disposable-email-domains": "^1.0.62",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
@@ -54,6 +56,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
+    "@types/disposable-email-domains": "^1.0.6",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.1",

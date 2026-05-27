@@ -92,7 +92,18 @@ function ResetPasswordForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {!token ? (
+          <div className="pt-2 pb-4">
+            <ErrorDisplay 
+              error={{
+                whatHappened: "Invalid or Missing Security Token",
+                whyItHappened: "No valid reset token was found in your URL.",
+                whatToDoNext: "Please request a new password reset link."
+              }} 
+            />
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
           <ValidatedInput
             label="New Password"
             value={password}
@@ -127,6 +138,7 @@ function ResetPasswordForm() {
             {loading ? "Processing..." : "Update Password"}
           </Button>
         </form>
+        )}
 
         <div className="mt-8 text-center border-t border-slate-200 dark:border-charcoal pt-6">
           <p className="text-slate-500 dark:text-cream text-xs">

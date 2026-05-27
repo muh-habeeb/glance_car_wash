@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
         setError(formatAuthError(result.error));
         return;
       }
-      setSuccess("A password reset link has been requested! If the email is registered, check your inbox.");
+      setSuccess("If the email is registered with us, you will receive a reset link shortly in your inbox.");
     } catch (err: any) {
       setError(formatAuthError(err));
     } finally {

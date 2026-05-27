@@ -13,9 +13,18 @@ import { z } from "zod";
 import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { ConfirmPasswordInput } from "@/components/ui/ConfirmPasswordInput";
 
+import disposableDomains from "disposable-email-domains";
+import { extraBurners } from "../../lib/burnerDomains";
+
 // Define field-level Zod validation schemas
 const nameSchema = z.string().min(1, "Full Name is required").min(3, "Full Name must be at least 3 characters");
-const emailSchema = z.email("Enter a valid email").min(1, "Email Address is required");
+const emailSchema = z.string().email("Enter a valid email").min(1, "Email Address is required").refine(
+  (email) => {
+    const domain = email.split("@")[1]?.toLowerCase();
+    return domain && !disposableDomains.includes(domain) && !extraBurners.includes(domain);
+  },
+  { message: "Registration rejected. Burner emails are not allowed." }
+);
 const phoneSchema = z.string().min(1, "Phone is required").startsWith("+", "Add country code to your phone number ").min(6, "Enter valid phone number");
 const passwordSchema = z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters");
 
@@ -63,7 +72,7 @@ export default function SignupPage() {
         password,
         phone,
         whatsapp,
-        callbackURL: window.location.origin + "/dashboard",
+        callbackURL: window.location.origin + "/dashboard?verified=true",
       });
 
       if (result.error) {
@@ -71,10 +80,10 @@ export default function SignupPage() {
         return;
       }
 
-      setSuccess("Account created successfully! Redirecting...");
+      setSuccess("Account created, verification email has been sent please verify your account.");
       setTimeout(() => {
-        router.push("/dashboard");
-      }, 1000);
+        router.push(`/login?email=${encodeURIComponent(email)}`);
+      }, 7000);
     } catch (err: any) {
       setError(formatAuthError(err));
     } finally {
@@ -253,8 +262,9 @@ export default function SignupPage() {
             <Button
               type="button"
               variant="outline"
+              disabled={loading}
               onClick={() => handleSocialSignIn("google")}
-              className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5"
+              className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                 <path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z" />
@@ -267,8 +277,9 @@ export default function SignupPage() {
             <Button
               type="button"
               variant="outline"
+              disabled={loading}
               onClick={() => handleSocialSignIn("facebook")}
-              className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5"
+              className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-4 h-4 mr-2 fill-[#1877F2]" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />

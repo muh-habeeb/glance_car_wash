@@ -23,7 +23,8 @@ import * as Sentry from "@sentry/node";
 import { initDeletionSweeper } from "./services/deletionSweeper.js";
 import { auth } from "./lib/auth.js";
 import { toNodeHandler } from "better-auth/node";
-import { initSuperAdmin } from "./services/superAdminSeeder.js";
+// import { initSuperAdmin } from "./services/superAdminSeeder.js";
+import { prisma } from "./config/prisma.js";
 
 
 
@@ -33,7 +34,31 @@ const app = express();
 initDeletionSweeper();
 
 // Initialize Super Admin (Upsert from env)
-initSuperAdmin();
+// initSuperAdmin(); // Commented out as requested
+
+// Database connection polling system
+const startDatabasePolling = async () => {
+  let connected = false;
+  while (!connected) {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      connected = true;
+      console.log("Database connected successfully.");
+      // If needed in the future, initSuperAdmin() can be called here once connected.
+    } catch (error: any) {
+      if (error.code === "P1001" || error.message?.includes("Can't reach database server")) {
+        console.log("Cannot connect to db. Retrying in 5 seconds...");
+      } else {
+        console.log("Database error:", error.message || "Unknown error");
+      }
+      // Wait 5 seconds before retrying
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+};
+
+// Start the polling
+startDatabasePolling();
 
 // Conditionally Initialize Sentry 
 if (env.ENABLE_SENTRY == true && env.SENTRY_DSN) {

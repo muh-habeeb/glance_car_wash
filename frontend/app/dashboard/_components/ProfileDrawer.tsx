@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { env } from "@/utils/env";
 import { toast } from "sonner";
 import { useAlert } from "@/components/ui/Alert";
+import disposableDomains from "disposable-email-domains";
+import { extraBurners } from "../../../lib/burnerDomains";
 import {
   User,
   Lock,
@@ -200,10 +202,18 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
     }
   };
 
-  const handleChangeEmail = async (e: React.SubmitEvent) => {
+  const handleChangeEmail = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const emailResult = z.email("Invalid email address").safeParse(ceNewEmail);
+    const emailSchema = z.string().email("Invalid email address").refine(
+      (email) => {
+        const domain = email.split("@")[1]?.toLowerCase();
+        return domain && !disposableDomains.includes(domain) && !extraBurners.includes(domain);
+      },
+      { message: "Burner emails are not allowed." }
+    );
+
+    const emailResult = emailSchema.safeParse(ceNewEmail);
     if (!emailResult.success) {
       emailAlert.error(emailResult.error.issues[0].message, 5);
       toast.error(emailResult.error.issues[0].message);

@@ -38,6 +38,7 @@ import { ProfileDrawer } from "./_components/ProfileDrawer";
 
 // Import Boneyard-js skeleton loading component
 import { Skeleton } from "boneyard-js/react";
+import { toast } from "sonner";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 
 export default function Dashboard() {
@@ -50,12 +51,29 @@ export default function Dashboard() {
   const [activePage, setActivePage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Trigger a brief simulated skeleton loading delay for testing premium Boneyard loadings
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 900);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isVerified = params.get("verified");
+    const errorMsg = params.get("error");
+
+    if (isVerified === "true") {
+      toast.success("Account verified successfully!", {
+        description: "Your email address has been confirmed.",
+      });
+      window.history.replaceState({}, "", "/dashboard");
+    } else if (errorMsg) {
+      toast.error("Verification failed", {
+        description: decodeURIComponent(errorMsg),
+      });
+      window.history.replaceState({}, "", "/dashboard");
+    }
   }, []);
 
   useEffect(() => {

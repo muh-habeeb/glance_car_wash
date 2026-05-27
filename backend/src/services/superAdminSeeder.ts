@@ -90,7 +90,11 @@ export const initSuperAdmin = async (): Promise<void> => {
     });
 
     logger.info("Super Admin account and Better Auth credentials seeded/verified successfully.");
-  } catch (error) {
-    logger.error(error, "Failed to seed Super Admin account:");
+  } catch (error: any) {
+    if (error.code === "P1001" || error.message?.includes("Can't reach database server")) {
+      logger.error("Cannot connect to db");
+    } else {
+      logger.error(error.message || "Unknown error", "Failed to seed Super Admin account:");
+    }
   }
 };
