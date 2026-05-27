@@ -17,7 +17,7 @@ export const auth = betterAuth({
   trustedOrigins: [env.FRONTEND_URL, ...(env.CORS_ORIGIN || [])],
   advanced: {
     defaultCookieAttributes: {
-      sameSite: "none",
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
       secure: env.NODE_ENV === "production",
     }
   },
