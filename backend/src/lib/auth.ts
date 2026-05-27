@@ -172,7 +172,7 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, token }) => {
-      const frontendUrl = Array.isArray(env.CORS_ORIGIN) ? env.CORS_ORIGIN[0] : env.CORS_ORIGIN;
+      const frontendUrl = env.FRONTEND_URL;
       const customUrl = `${frontendUrl}/login?verifyToken=${token}`;
       await sendVerificationEmail(user.email, user.name, customUrl);
     },
@@ -181,7 +181,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, token }) => {
-      const frontendUrl = Array.isArray(env.CORS_ORIGIN) ? env.CORS_ORIGIN[0] : env.CORS_ORIGIN;
+      const frontendUrl = env.FRONTEND_URL;
       const customUrl = `${frontendUrl}/reset-password?token=${token}`;
       await sendResetPasswordEmail(user.email, user.name, customUrl);
     },
