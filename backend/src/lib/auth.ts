@@ -6,7 +6,9 @@ import { APIError } from "better-auth/api";
 import { prisma } from "../config/prisma.js";
 import { env } from "../config/env.js";
 import { sendResetPasswordEmail, sendVerificationEmail, sendDeleteAccountEmail } from "../services/mailer.js";
-import disposableDomains from "disposable-email-domains";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const disposableDomains = require("disposable-email-domains") as string[];
 import { extraBurners } from "./burnerDomains.js";
 
 export const auth = betterAuth({
