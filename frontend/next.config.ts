@@ -23,7 +23,21 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "platform-lookaside.fbsbx.com",
       },
+      {
+        protocol: "https",
+        hostname: "platform-lookaside.fbsbx.com",
+      },
     ],
+  },
+  async rewrites() {
+    // If the server URL is not defined, default to Render
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "https://glance-car-wash.onrender.com";
+    return [
+      {
+        source: "/api/auth/:path*",
+        destination: `${serverUrl}/api/auth/:path*`,
+      },
+    ];
   },
 };
 
