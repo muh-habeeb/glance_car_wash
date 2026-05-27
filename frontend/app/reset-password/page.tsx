@@ -13,7 +13,7 @@ import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { ConfirmPasswordInput } from "@/components/ui/ConfirmPasswordInput";
 import { z } from "zod";
 
-const passwordSchema = z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters");
+const passwordSchema = z.string().min(1, "Password is required").min(8, "Password must be at least 8 characters");
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();

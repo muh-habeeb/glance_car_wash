@@ -83,7 +83,7 @@ function Field({
   );
 }
 
-const delPasswordSchema = z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters");
+const delPasswordSchema = z.string().min(1, "Password is required").min(8, "Password must be at least 8 characters");
 const emailSchema = z.string().email("Invalid email address").refine(
   (email) => {
     const domain = email.split("@")[1]?.toLowerCase();

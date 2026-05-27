@@ -26,7 +26,7 @@ const emailSchema = z.string().email("Enter a valid email").min(1, "Email Addres
   { message: "Registration rejected. Burner emails are not allowed." }
 );
 const phoneSchema = z.string().min(1, "Phone is required").startsWith("+", "Add country code to your phone number ").min(6, "Enter valid phone number");
-const passwordSchema = z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters");
+const passwordSchema = z.string().min(1, "Password is required").min(8, "Password must be at least 8 characters");
 
 export default function SignupPage() {
   const router = useRouter();

@@ -175,7 +175,8 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, token }) => {
       const frontendUrl = env.FRONTEND_URL;
       const customUrl = `${frontendUrl}/login?verifyToken=${token}`;
-      await sendVerificationEmail(user.email, user.name, customUrl);
+      // Fire-and-forget email to prevent SMTP connection timeouts from hanging the signup flow
+      sendVerificationEmail(user.email, user.name, customUrl).catch(e => console.error("Email send failed:", e));
     },
   },
   emailAndPassword: {
@@ -184,7 +185,8 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, token }) => {
       const frontendUrl = env.FRONTEND_URL;
       const customUrl = `${frontendUrl}/reset-password?token=${token}`;
-      await sendResetPasswordEmail(user.email, user.name, customUrl);
+      // Fire-and-forget email to prevent SMTP connection timeouts from hanging the API
+      sendResetPasswordEmail(user.email, user.name, customUrl).catch(e => console.error("Reset email send failed:", e));
     },
     password: {
       hash: async (password) => {
