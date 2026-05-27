@@ -5,7 +5,7 @@ import { env } from "../config/env.js";
  * Premium email template layout wrapper
  */
 export const emailLayout = (content: string, previewText: string = "Glanz Premium Car Wash Update"): string => {
-  const frontendUrl = env.FRONTEND_URL || "http://localhost:3000";
+  const frontendUrl = env.FRONTEND_URL;
   const goldLogoUrl = "cid:gold_logo";
   const whiteLogoUrl = "cid:white_logo";
 
