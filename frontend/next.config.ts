@@ -30,12 +30,10 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    // If the server URL is not defined, default to Render
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "https://glance-car-wash.onrender.com";
     return [
       {
         source: "/api/auth/:path*",
-        destination: `${serverUrl}/api/auth/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/:path*`,
       },
     ];
   },
