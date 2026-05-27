@@ -169,8 +169,6 @@ export const auth = betterAuth({
       }
     }
   },
-  trustedOrigins: env.CORS_ORIGIN,
-  baseURL: env.BETTER_AUTH_URL,
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, token }) => {

@@ -78,7 +78,7 @@ export const env = createEnv({
     ENABLE_SENTRY: z.coerce.boolean().default(false),
 
     // Better Auth
-    BETTER_AUTH_URL: z.string().url().default("http://localhost:3500"),
+    BETTER_AUTH_URL: z.url().default("http://localhost:3500"),
     BETTER_AUTH_SECRET: z.string().min(8).default("development_secret_only"),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
