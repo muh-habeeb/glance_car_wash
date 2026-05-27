@@ -100,13 +100,9 @@ const matchOrigin = (incoming: string, allowedList: string[]): boolean => {
  */
 export const corsOptions = cors({
   origin: (origin, callback) => {
-    // In development, allow requests with no origin (like mobile apps, curl, postman)
+    // Allow requests with no origin (like mobile apps, curl, postman, and Render health checks)
     if (!origin) {
-      if (env.NODE_ENV === "development") {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS policy: origin header is required."));
-      }
+      callback(null, true);
       return;
     }
 
