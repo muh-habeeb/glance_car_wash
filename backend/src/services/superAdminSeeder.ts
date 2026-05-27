@@ -40,6 +40,7 @@ export const initSuperAdmin = async (): Promise<void> => {
           email: SUPERADMIN_EMAIL,
           password: hashedPassword,
           is_active: true,
+          emailVerified: true,
         }
       });
 
@@ -60,6 +61,7 @@ export const initSuperAdmin = async (): Promise<void> => {
           password: hashedPassword,
           role: "SUPERADMIN",
           is_active: true,
+          emailVerified: true
         },
         create: {
           name: "Super Admin",
@@ -68,6 +70,7 @@ export const initSuperAdmin = async (): Promise<void> => {
           phone: "+00000000000",
           role: "SUPERADMIN",
           is_active: true,
+          emailVerified: true
         },
       });
     }
@@ -80,6 +83,7 @@ export const initSuperAdmin = async (): Promise<void> => {
         accountId: primaryAdmin.id, // Better Auth stores user ID as accountId for providerId: 'credential'
         password: hashedPassword,
       },
+
       create: {
         id: accountIdStr,
         userId: primaryAdmin.id,
