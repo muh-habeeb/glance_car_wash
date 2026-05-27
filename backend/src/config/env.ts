@@ -15,7 +15,7 @@ const domainRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-
 
 const urlListSchema = z.string().transform((val) => {
   return val.split(",").map((s) => s.trim());
-}).refine((origins) => {
+}).superRefine((origins, ctx) => {
   for (const origin of origins) {
     try {
       const url = new URL(origin);
@@ -23,27 +23,42 @@ const urlListSchema = z.string().transform((val) => {
       // Enforce security protocol rules:
       // Production mode MUST be https only. Development/Test mode can be http or https.
       if (isProd) {
-        if (url.protocol !== "https:") return false;
+        if (url.protocol !== "https:") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `HTTP is not allowed in production. URL must start with 'https://'. Received: ${origin}`
+          });
+          return;
+        }
 
         const hostname = url.hostname;
         const isIP = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(hostname) || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 
         // Strict domain verification for prod URLs (except IP/localhost overrides)
         if (!isIP && !domainRegex.test(hostname)) {
-          return false;
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Invalid domain format in production. Received: ${origin}`
+          });
+          return;
         }
       } else {
-        if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+        if (url.protocol !== "http:" && url.protocol !== "https:") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `URL must start with 'http://' or 'https://'. Received: ${origin}`
+          });
+          return;
+        }
       }
     } catch {
-      return false;
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid URL format. Received: ${origin}`
+      });
+      return;
     }
   }
-  return true;
-}, {
-  message: isProd
-    ? "Must be a single secure HTTPS URL, or multiple separated by commas in production."
-    : "Must be a single valid HTTP or HTTPS URL, or multiple separated by commas in development."
 });
 
 export const env = createEnv({
