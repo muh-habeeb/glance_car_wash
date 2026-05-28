@@ -2,14 +2,13 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy explicitly from the backend folder in case Dokploy context is set to root (/)
+COPY backend/package*.json ./
 
 RUN apk add --no-cache openssl
 RUN npm install
 
-COPY . .
-
-
+COPY backend/ ./
 
 RUN npm run build
 

@@ -3,11 +3,12 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy explicitly from the frontend folder in case Dokploy context is set to root (/)
+COPY frontend/package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY frontend/ ./
 
 RUN npm run build
 
