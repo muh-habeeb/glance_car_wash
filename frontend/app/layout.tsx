@@ -31,7 +31,7 @@ export default function RootLayout({
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-white dark:bg-glanz-black text-black dark:text-white transition-colors duration-300">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           disableTransitionOnChange
         >
           <AuthStoreProvider>
