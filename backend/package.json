@@ -9,8 +9,8 @@
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "npx prisma generate && node dist/server.js",
+    "build": "DATABASE_URL='postgresql://dummy:dummy@dummy/dummy' npx prisma generate && tsc",
+    "start": "node dist/server.js",
     "prisma": "prisma",
     "lint": "eslint",
     "db:generate": "prisma generate",
