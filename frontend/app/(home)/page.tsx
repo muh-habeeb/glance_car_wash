@@ -24,7 +24,7 @@ export default function HomePage() {
               Sign In
             </Link>
             <Link 
-              href="/register" 
+              href="/signup" 
               className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold transition-all shadow-[0_0_20px_rgba(216,171,68,0.2)] hover:shadow-[0_0_30px_rgba(216,171,68,0.4)]"
             >
               Book Now
@@ -54,7 +54,7 @@ export default function HomePage() {
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link 
-            href="/register" 
+            href="/signup" 
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
           >
             Explore Services
