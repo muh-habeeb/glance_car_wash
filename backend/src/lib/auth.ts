@@ -13,7 +13,7 @@ const disposableDomains = require("disposable-email-domains") as string[];
 import { extraBurners } from "./burnerDomains.js";
 
 export const auth = betterAuth({
-  baseURL: env.BETTER_AUTH_URL,
+  // baseURL: env.BETTER_AUTH_URL, // Removed so it infers dynamically from the Host header for Vercel/VPS
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [env.FRONTEND_URL, ...(env.CORS_ORIGIN || [])],
   advanced: {

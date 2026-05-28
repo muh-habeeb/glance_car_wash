@@ -29,6 +29,7 @@ import { prisma } from "./config/prisma.js";
 
 
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (NGINX/Vercel) for Secure cookies
 
 // Initialize Cron Jobs
 initDeletionSweeper();
