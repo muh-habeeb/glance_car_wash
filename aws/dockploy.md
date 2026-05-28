@@ -82,15 +82,19 @@ Once the installation finishes, open your browser and go to:
 2. Connect your GitHub account (it will ask you to install a GitHub App for permissions).
 3. Select your `glance_car_wash` repository.
 4. **Deploy the Backend:**
-   - Set the Build Pack to **Dockerfile**.
+   - Set the Build Type to **Dockerfile**.
    - Set the Build Path to `/backend`.
-   - Add your Backend Environment Variables.
+   - Set the Docker File Path to `./Dockerfile`.
+   - Set the Docker Context Path to `.`.
+   - **CRITICAL:** Paste all your backend `.env` variables (especially `DATABASE_URL`) into **BOTH** the `Environment` tab AND the `Build Environment` tab in Dokploy!
 5. **Deploy the Frontend:**
-   - Set the Build Pack to **Dockerfile**.
+   - Set the Build Type to **Dockerfile**.
    - Set the Build Path to `/frontend`.
+   - Set the Docker File Path to `./Dockerfile`.
+   - Set the Docker Context Path to `.`.
    - Set the port to `3001`.
-   - Add your Frontend Environment Variables.
-6. Click **Deploy!**
+   - **CRITICAL:** Paste all your frontend `.env` variables into **BOTH** the `Environment` tab AND the `Build Environment` tab in Dokploy!
+6. Click **Save** and then **Deploy!**
 
 ### What about NGINX?
 When you use Dokploy, **you don't even need to configure NGINX manually!** 
