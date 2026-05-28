@@ -270,6 +270,17 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const toastId = toast.loading("Logging out...");
+      await signOut();
+      toast.success("Successfully logged out", { id: toastId });
+      router.push("/login");
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
   const tabs: { id: Tab; label: string; icon: any }[] = [
     { id: "profile", label: "Profile", icon: User },
     { id: "security", label: "Security", icon: Lock },
@@ -377,7 +388,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
 
               <div className="w-full flex justify-center pt-2">
                 <Button
-                  onClick={() => signOut().then(() => router.push("/login"))}
+                  onClick={handleLogout}
                   variant="destructive"
                   size="xs"
                   className="border border-rose-500/20"

@@ -58,6 +58,17 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      const toastId = toast.loading("Logging out...");
+      await signOut();
+      toast.success("Successfully logged out", { id: toastId });
+      router.push("/login");
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const isVerified = params.get("verified");
@@ -135,7 +146,7 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-4">
             <Button
-              onClick={() => signOut().then(() => router.push("/login"))}
+              onClick={handleLogout}
               variant="outline"
               size="sm"
               className="hidden sm:inline-flex border-slate-200 dark:border-charcoal text-slate-700 dark:text-cream hover:bg-slate-100 dark:hover:bg-charcoal/50 text-xs px-4"
