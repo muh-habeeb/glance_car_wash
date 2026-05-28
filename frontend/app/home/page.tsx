@@ -1,0 +1,93 @@
+import { Shield, Sparkles, Droplets } from "lucide-react";
+import Link from "next/link";
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-blue-600 selection:text-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/50 backdrop-blur-md">
+        <div className="container mx-auto flex h-20 items-center justify-between px-6">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-blue-500" />
+            <span className="text-xl font-bold tracking-wider">GLANZ</span>
+          </div>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+            <Link href="#services" className="hover:text-white transition-colors">Services</Link>
+            <Link href="#about" className="hover:text-white transition-colors">About Us</Link>
+            <Link href="#contact" className="hover:text-white transition-colors">Contact</Link>
+          </nav>
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/login" 
+              className="text-sm font-medium text-zinc-300 hover:text-white transition-colors"
+            >
+              Sign In
+            </Link>
+            <Link 
+              href="/register" 
+              className="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-sm font-semibold transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]"
+            >
+              Book Now
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="container mx-auto px-6 pt-32 pb-24 text-center md:pt-48 md:pb-32">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-medium text-blue-400 mb-8">
+          <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+          Premium Detailing Studio
+        </div>
+        
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
+          The Ultimate <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+            Spa For Your Car
+          </span>
+        </h1>
+        
+        <p className="max-w-2xl mx-auto text-lg text-zinc-400 mb-12 leading-relaxed">
+          Experience unmatched brilliance with our luxury hand-wash and ceramic coating services. 
+          We treat every vehicle like a masterpiece.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link 
+            href="/register" 
+            className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-black font-semibold hover:bg-zinc-200 transition-colors"
+          >
+            Explore Services
+          </Link>
+          <Link 
+            href="#video" 
+            className="w-full sm:w-auto px-8 py-4 rounded-full border border-white/20 font-semibold hover:bg-white/10 transition-colors"
+          >
+            Watch Video
+          </Link>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32 text-left">
+          <div className="p-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent hover:border-white/20 transition-all">
+            <Droplets className="h-10 w-10 text-blue-400 mb-6" />
+            <h3 className="text-xl font-bold mb-3">Foam Cannon Wash</h3>
+            <p className="text-zinc-500">Thick, lubricating snow foam safely lifts dirt and grime without scratching your delicate clear coat.</p>
+          </div>
+          
+          <div className="p-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent hover:border-white/20 transition-all">
+            <Shield className="h-10 w-10 text-blue-400 mb-6" />
+            <h3 className="text-xl font-bold mb-3">Ceramic Coating</h3>
+            <p className="text-zinc-500">Long-lasting hydrophobic protection that makes washing easier and keeps your car looking glossy for years.</p>
+          </div>
+
+          <div className="p-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent hover:border-white/20 transition-all">
+            <Sparkles className="h-10 w-10 text-blue-400 mb-6" />
+            <h3 className="text-xl font-bold mb-3">Interior Detailing</h3>
+            <p className="text-zinc-500">Deep extraction cleaning and UV conditioning to restore your interior to a factory-fresh scent and feel.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
