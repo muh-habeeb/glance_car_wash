@@ -62,42 +62,42 @@ sudo apt-get autoremove -y
 ```
 
 #### 3. Install the PaaS on your VPS
-Now that ports 80 and 443 are completely free, run the installation script for your chosen PaaS. *(Coolify is currently the most popular and powerful modern open-source PaaS).*
+Now that ports 80 and 443 are completely free, run the installation script for your chosen PaaS. *(Dokploy is currently one of the most lightweight and powerful modern open-source PaaS).*
 
-**To install Coolify:**
+**To install Dokploy:**
 ```bash
-curl -fsSL https://cdn.coollabs.io/coolify/install.sh | sudo bash
+curl -sSL https://dokploy.com/install.sh | sudo sh
 ```
 *(This script will automatically install Docker and set everything up).*
 
 #### 3. Access the Dashboard
 Once the installation finishes, open your browser and go to:
-`http://<YOUR_AWS_VPS_IP>:8000`
+`http://<YOUR_AWS_VPS_IP>:3000`
 
 - Create your admin account.
-- In the settings, you can change the URL to `https://deploy.habeebrahman.tech` (Coolify will automatically generate the SSL certificate for you using Let's Encrypt!).
+- In the settings, you can change the URL to `https://deploy.habeebrahman.tech` (Dokploy will automatically generate the SSL certificate for you using Let's Encrypt!).
 
 #### 4. Connect GitHub & Deploy
-1. In the Coolify/Dockploy dashboard, click **Add New Resource** -> **Git Repository**.
+1. In the Dokploy dashboard, click **Add New Resource** -> **Git Repository**.
 2. Connect your GitHub account (it will ask you to install a GitHub App for permissions).
 3. Select your `glance_car_wash` repository.
 4. **Deploy the Backend:**
-   - Set the Build Pack to **Nixpacks** or **Dockerfile**.
-   - Set the start command to `npm run start`.
-   - Set the port to `3500`.
+   - Set the Build Pack to **Dockerfile**.
+   - Set the Build Path to `/backend`.
    - Add your Backend Environment Variables.
 5. **Deploy the Frontend:**
-   - Set the Build Pack to **Next.js**.
+   - Set the Build Pack to **Dockerfile**.
+   - Set the Build Path to `/frontend`.
    - Set the port to `3001`.
    - Add your Frontend Environment Variables.
 6. Click **Deploy!**
 
 ### What about NGINX?
-When you use Dockploy or Coolify, **you don't even need to configure NGINX manually!** 
-The PaaS comes with a built-in reverse proxy (like Traefik or Caddy). You simply type `https://glanz.habeebrahman.tech` into the frontend configuration box inside the Coolify dashboard, and it automatically routes the traffic, generates the SSL certs, and handles everything!
+When you use Dokploy, **you don't even need to configure NGINX manually!** 
+The PaaS comes with a built-in reverse proxy (Traefik). You simply type `https://glanz.habeebrahman.tech` into the frontend configuration box inside the Dokploy dashboard, and it automatically routes the traffic, generates the SSL certs, and handles everything!
 
 ### Summary Recommendation
-If you want the easiest, most visual, and least stressful CI/CD experience, **use Coolify**. It completely replaces the need for Docker Hub, GitHub Actions, and manual NGINX configurations!
+If you want the easiest, most visual, and least stressful CI/CD experience, **use Dokploy**. It completely replaces the need for Docker Hub, GitHub Actions, and manual NGINX configurations!
 
 ---
 
