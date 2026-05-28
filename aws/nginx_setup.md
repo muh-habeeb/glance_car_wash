@@ -165,7 +165,7 @@ sudo apt install -y certbot python3-certbot-nginx
 Run Certbot to automatically fetch the certificates. (Certbot may offer to automatically edit your NGINX config to add the SSL block, or you can manually uncomment the block above once it finishes).
 
 ```bash
-sudo certbot --nginx -d glanz.habeeb.qzz.io
+sudo certbot --nginx -d glanz.habeebrahman.tech
 ```
 
 ### Final Step

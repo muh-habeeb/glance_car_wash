@@ -65,6 +65,7 @@ export default function Dashboard() {
       toast.success("Successfully logged out", { id: toastId });
       router.push("/login");
     } catch (error) {
+      console.log(error)
       toast.error("Logout failed. Please try again.");
     }
   };
@@ -106,9 +107,8 @@ export default function Dashboard() {
 
   if (!sessionData) return null;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const user = sessionData.user as any;
-  const isGoogle = user.image?.includes("googleusercontent.com");
-  const isFacebook = user.image?.includes("facebook.com") || user.image?.includes("platform-lookaside");
 
   // Mock Bookings Data
   const dummyBookings = [

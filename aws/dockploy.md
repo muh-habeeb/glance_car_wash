@@ -37,12 +37,36 @@ Yes! You need to create a subdomain for your deployment dashboard.
   - **Value / IP Address:** `[Your AWS VPS Public IP]`
 - This will make `deploy.habeebrahman.tech` point to your VPS.
 
-#### 2. Install the PaaS on your VPS
-SSH into your AWS VPS and run the installation script for your chosen PaaS. *(Coolify is currently the most popular and powerful modern open-source PaaS).*
+#### 2. Clean up your VPS (CRITICAL!)
+Because Coolify runs its own reverse proxy (Traefik) and handles process management via Docker, it **must** have full control over ports 80 and 443. If you have NGINX and PM2 currently running, they will conflict and break the installation!
+
+**SSH into your VPS and run these commands to clean up:**
+
+1. **Stop and remove PM2 apps:**
+```bash
+pm2 stop all
+pm2 delete all
+pm2 save
+npm uninstall -g pm2
+```
+
+2. **Stop and disable NGINX:**
+```bash
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+```
+*(Optional: If you want to completely remove NGINX to be safe)*
+```bash
+sudo apt-get purge nginx nginx-common -y
+sudo apt-get autoremove -y
+```
+
+#### 3. Install the PaaS on your VPS
+Now that ports 80 and 443 are completely free, run the installation script for your chosen PaaS. *(Coolify is currently the most popular and powerful modern open-source PaaS).*
 
 **To install Coolify:**
 ```bash
-curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
+curl -fsSL https://cdn.coollabs.io/coolify/install.sh | sudo bash
 ```
 *(This script will automatically install Docker and set everything up).*
 
@@ -64,7 +88,7 @@ Once the installation finishes, open your browser and go to:
    - Add your Backend Environment Variables.
 5. **Deploy the Frontend:**
    - Set the Build Pack to **Next.js**.
-   - Set the port to `3000`.
+   - Set the port to `3001`.
    - Add your Frontend Environment Variables.
 6. Click **Deploy!**
 
@@ -74,3 +98,41 @@ The PaaS comes with a built-in reverse proxy (like Traefik or Caddy). You simply
 
 ### Summary Recommendation
 If you want the easiest, most visual, and least stressful CI/CD experience, **use Coolify**. It completely replaces the need for Docker Hub, GitHub Actions, and manual NGINX configurations!
+
+---
+
+## Expanding Server Storage Space (AWS EBS)
+
+If you ever need to increase your server's storage space (for example, if Docker images fill up your disk), you first upgrade the EBS Volume size in your AWS Console. Once that is done, you **must** expand the partition inside the EC2 instance so Ubuntu recognizes the new space.
+
+⚠️ **Step 2: Expand partition inside EC2**
+
+SSH into your server and run the following commands:
+
+**1. Check current disk partitions**
+```bash
+lsblk
+```
+*You will see something like this, showing your main disk (`nvme0n1`) and its partition (`nvme0n1p1`):*
+```text
+nvme0n1
+ └─nvme0n1p1
+```
+
+**2. Grow the partition**
+*This tells the OS to expand partition `1` on disk `nvme0n1` to fill the new space.*
+```bash
+sudo growpart /dev/nvme0n1 1
+```
+
+**3. Resize the filesystem**
+*Assuming Ubuntu uses `ext4` (which is the default and most common), run this to resize the actual file system:*
+```bash
+sudo resize2fs /dev/nvme0n1p1
+```
+
+**4. Verify the new size**
+```bash
+df -h
+```
+*Now you should see your new larger size (20GB or more) available on the main mount!*

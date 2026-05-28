@@ -277,6 +277,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
       toast.success("Successfully logged out", { id: toastId });
       router.push("/login");
     } catch (error) {
+      console.log(error)
       toast.error("Logout failed. Please try again.");
     }
   };
