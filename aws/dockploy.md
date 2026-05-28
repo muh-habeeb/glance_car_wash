@@ -101,38 +101,103 @@ If you want the easiest, most visual, and least stressful CI/CD experience, **us
 
 ---
 
-## Expanding Server Storage Space (AWS EBS)
+## EC2 Storage & Swap Upgrade Guide (Dokploy / Docker VPS)
 
-If you ever need to increase your server's storage space (for example, if Docker images fill up your disk), you first upgrade the EBS Volume size in your AWS Console. Once that is done, you **must** expand the partition inside the EC2 instance so Ubuntu recognizes the new space.
+This guide explains how to safely increase disk storage and add swap memory on an AWS EC2 Ubuntu instance running Docker / Dokploy.
 
-⚠️ **Step 2: Expand partition inside EC2**
+### 1. Increase EBS Volume (AWS Console)
 
-SSH into your server and run the following commands:
+**Step 1: Modify Volume**
+- Go to: https://console.aws.amazon.com/ec2/
+- Open **Elastic Block Store → Volumes**
+- Select your volume
+- Click **Modify Volume**
+- Increase size (example: 35GB → 50GB)
+- Click **Modify**
 
-**1. Check current disk partitions**
+Wait until status shows `In-use` / `Optimizing`.
+
+---
+
+### 2. Expand Disk Inside Ubuntu
+
+After increasing the volume, SSH into the instance and run:
+
+**Step 1: Check disk**
 ```bash
 lsblk
 ```
-*You will see something like this, showing your main disk (`nvme0n1`) and its partition (`nvme0n1p1`):*
-```text
-nvme0n1
- └─nvme0n1p1
+*(You will see something like `nvme0n1` and its partition `nvme0n1p1`)*
+
+**Step 2: Install required tool (if missing)**
+```bash
+sudo apt update
+sudo apt install cloud-guest-utils -y
 ```
 
-**2. Grow the partition**
-*This tells the OS to expand partition `1` on disk `nvme0n1` to fill the new space.*
+**Step 3: Expand partition**
 ```bash
 sudo growpart /dev/nvme0n1 1
 ```
 
-**3. Resize the filesystem**
-*Assuming Ubuntu uses `ext4` (which is the default and most common), run this to resize the actual file system:*
+**Step 4: Resize filesystem**
+*(For Ubuntu EXT4)*
 ```bash
 sudo resize2fs /dev/nvme0n1p1
 ```
 
-**4. Verify the new size**
+**Step 5: Verify**
 ```bash
 df -h
 ```
-*Now you should see your new larger size (20GB or more) available on the main mount!*
+*(You should now see the updated disk size e.g., 50GB).*
+
+---
+
+### 3. Add Swap Memory (VERY IMPORTANT)
+
+Swap prevents crashes when RAM is full (extremely important for Docker / Dokploy builds).
+
+**Option A: Create 4GB Swap (Minimum)**
+```bash
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+**Option B: Create 8GB Swap (Recommended for stability)**
+```bash
+sudo swapoff /swapfile
+
+sudo fallocate -l 8G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+**Step 4: Verify Swap**
+```bash
+free -h
+```
+*(You should see `Swap: 4.0G` or `8.0G`)*
+
+---
+
+### 4. Optional: Restart Docker
+
+If Docker was unstable before you added the swap:
+```bash
+sudo systemctl restart docker
+```
+
+### 5. Recommended Production Setup (Dokploy VPS)
+| Resource | Recommended |
+|----------|-------------|
+| **RAM** | 4 GB minimum |
+| **CPU** | 2 vCPU |
+| **Disk** | 40–60 GB SSD |
+| **Swap** | 4–8 GB |

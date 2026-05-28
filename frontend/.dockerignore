@@ -10,3 +10,7 @@ logs
 .idea
 .vscode
 *.log
+deployment.md
+AGENTS.md
+CLAUDE.md
+docs

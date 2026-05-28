@@ -8,3 +8,17 @@ logs
 .idea
 .vscode
 *.log
+deployment.md
+AGENTS.md
+CLAUDE.md
+docs
+
+logs
+.agents
+fix-phone.ts
+.github
+.gemini
+GEMINI.md
+skills-lock.json
+
+add-copyright.ts
