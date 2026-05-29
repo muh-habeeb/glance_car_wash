@@ -231,7 +231,7 @@ export default function SignupPage() {
             </ValidatedInput>
 
             <ValidatedInput
-              label="Email Address"
+              label="Email"
               value={email}
               schema={emailSchema}
               isSubmitted={isSubmitted}
