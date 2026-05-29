@@ -134,3 +134,116 @@ input[type="number"] {
 ::-webkit-scrollbar-thumb:hover {
   background: #D8AB44;
 }
+
+/* ──────────────────────────────────────────────────────────────
+   intl-tel-input — Glanz theme overrides (light + dark)
+   Uses the library's official --iti-* CSS variable API.
+   Scoped under .iti-glanz-theme so overrides don't leak.
+   ────────────────────────────────────────────────────────────── */
+
+/* Light mode defaults */
+.iti-glanz-theme {
+  --iti-border-color: #E2E8F0;
+  --iti-country-selector-bg: #ffffff;
+  --iti-hover-color: #f1f5f9;
+  --iti-icon-color: #64748b;
+}
+
+/* Dark mode overrides */
+.dark .iti-glanz-theme {
+  --iti-border-color: #2E2E2E;
+  --iti-country-selector-bg: #0B0B0B;
+  --iti-hover-color: #1e1e1e;
+  --iti-icon-color: #F5EFE2;
+}
+
+/* Full-width layout */
+.iti-glanz-theme .iti {
+  width: 100%;
+}
+
+/* Country dropdown panel */
+.iti-glanz-theme .iti__country-list {
+  background: #ffffff;
+  border-color: #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.dark .iti-glanz-theme .iti__country-list {
+  background: #0B0B0B;
+  border-color: #2E2E2E;
+  color: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Search input inside the dropdown */
+.iti-glanz-theme .iti__search-input {
+  background: #ffffff;
+  color: #0F172A;
+  border-color: #E2E8F0;
+}
+
+.dark .iti-glanz-theme .iti__search-input {
+  background: #141414;
+  color: #ffffff;
+  border-color: #2E2E2E;
+}
+
+.dark .iti-glanz-theme .iti__search-input::placeholder {
+  color: #6B6B6B;
+}
+
+/* Country list item hover */
+.iti-glanz-theme .iti__country-item:hover {
+  background-color: #f1f5f9;
+}
+
+.dark .iti-glanz-theme .iti__country-item:hover {
+  background-color: #1e1e1e;
+}
+
+/* Active / highlighted country */
+.iti-glanz-theme .iti__country-item--highlight {
+  background-color: #f1f5f9;
+}
+
+.dark .iti-glanz-theme .iti__country-item--highlight {
+  background-color: #1e1e1e;
+}
+
+/* Preferred countries section */
+.iti-glanz-theme .iti__country-item.iti__preferred {
+  background-color: #FBF7EE;
+}
+
+.dark .iti-glanz-theme .iti__country-item.iti__preferred {
+  background-color: #1a1608;
+}
+
+/* Divider between preferred and all countries */
+.iti-glanz-theme .iti__divider {
+  border-bottom-color: #E2E8F0;
+}
+
+.dark .iti-glanz-theme .iti__divider {
+  border-bottom-color: #2E2E2E;
+}
+
+/* Country name & dial code text in dark mode */
+.dark .iti-glanz-theme .iti__country-name {
+  color: #F5EFE2;
+}
+
+.dark .iti-glanz-theme .iti__dial-code {
+  color: #6B6B6B;
+}
+
+/* Selected country button area */
+.dark .iti-glanz-theme .iti__selected-country {
+  background: transparent;
+}
+
+.dark .iti-glanz-theme .iti__selected-country:hover {
+  background-color: #1e1e1e;
+}

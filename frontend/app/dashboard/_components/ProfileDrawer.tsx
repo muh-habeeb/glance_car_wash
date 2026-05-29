@@ -17,21 +17,23 @@ import {
   LogOut,
   Mail,
   Phone,
-  Check,
-  ShieldAlert,
-  UserCheck,
   Smartphone,
-  Info,
   Trash2,
   X,
   Settings,
-  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { ConfirmPasswordInput } from "@/components/ui/ConfirmPasswordInput";
 import { z } from "zod";
+import Field from "@/components/ui/Field";
 
 type Tab = "profile" | "security" | "danger";
 
@@ -42,72 +44,93 @@ interface ProfileDrawerProps {
   refetch?: () => void;
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-  disabled,
-  icon: Icon
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-  disabled?: boolean;
-  icon?: any;
-}) {
-  return (
-    <div className="space-y-1 w-full text-left">
-      <label className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
-        {label}
-      </label>
-      <div className="relative rounded-xl overflow-hidden">
-        {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-midgray">
-            <Icon className="w-4 h-4" />
-          </div>
-        )}
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={`w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold transition-all placeholder-midgray disabled:opacity-40 disabled:cursor-not-allowed ${Icon ? 'pl-10 pr-4' : 'px-4'}`}
-        />
-      </div>
-    </div>
+// function Field({
+//   label,
+//   value,
+//   onChange,
+//   type = "text",
+//   placeholder,
+//   disabled,
+//   icon: Icon,
+//   hidden,
+// }: {
+//   label: string;
+//   value: string;
+//   onChange: (v: string) => void;
+//   type?: string;
+//   placeholder?: string;
+//   disabled?: boolean;
+//   icon?: any;
+//   hidden?: boolean;
+// }) {
+//   return (
+//     <div className="space-y-1 w-full text-left">
+//       <label className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
+//         {label}
+//       </label>
+//       <div className="relative rounded-xl overflow-hidden">
+//         {Icon && (
+//           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-midgray">
+//             <Icon className="w-4 h-4" />
+//           </div>
+//         )}
+//         <input
+//           type={type}
+//           value={value}
+//           onChange={(e) => onChange(e.target.value)}
+//           placeholder={placeholder}
+//           disabled={disabled}
+//           hidden={hidden}
+//           className={`w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold transition-all placeholder-midgray disabled:opacity-40 disabled:cursor-not-allowed ${Icon ? "pl-10 pr-4" : "px-4"}`}
+//         />
+//       </div>
+//     </div>
+//   );
+// }
+
+const delPasswordSchema = z
+  .string()
+  .min(1, "Password is required")
+  .min(8, "Password must be at least 8 characters");
+const emailSchema = z
+  .string()
+  .email("Invalid email address")
+  .refine(
+    (email) => {
+      const domain = email.split("@")[1]?.toLowerCase();
+      return (
+        domain &&
+        !disposableDomains.includes(domain) &&
+        !extraBurners.includes(domain)
+      );
+    },
+    { message: "Burner emails are not allowed." },
   );
-}
 
-const delPasswordSchema = z.string().min(1, "Password is required").min(8, "Password must be at least 8 characters");
-const emailSchema = z.string().email("Invalid email address").refine(
-  (email) => {
-    const domain = email.split("@")[1]?.toLowerCase();
-    return domain && !disposableDomains.includes(domain) && !extraBurners.includes(domain);
-  },
-  { message: "Burner emails are not allowed." }
-);
-
-export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerProps) {
+export function ProfileDrawer({
+  isOpen,
+  onClose,
+  user,
+  refetch,
+}: ProfileDrawerProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [imageError, setImageError] = useState(false);
 
   const isGoogle = user?.image?.includes("googleusercontent.com");
-  const isFacebook = user?.image?.includes("facebook.com") || user?.image?.includes("platform-lookaside");
+  const isFacebook =
+    user?.image?.includes("facebook.com") ||
+    user?.image?.includes("platform-lookaside");
   const isCredentialsUser = !isGoogle && !isFacebook;
 
   // Change state / variables
   // Delete forms input
   const [delPassword, setDelPassword] = useState("");
   const [delEmail, setDelEmail] = useState("");
-  const isDeleteFormValid = isCredentialsUser 
-    ? delPasswordSchema.safeParse(delPassword).success 
-    : (z.string().email().safeParse(delEmail).success && delEmail === user?.email);
+  const isDeleteFormValid = isCredentialsUser
+    ? delPasswordSchema.safeParse(delPassword).success
+    : z.string().email().safeParse(delEmail).success &&
+      delEmail === user?.email;
 
   // Profile forms
   const [pName, setPName] = useState(user?.name || "");
@@ -143,7 +166,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [delLoading, setDelLoading] = useState(false);
 
-  const handleProfileSave = async (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setPLoading(true);
     profileAlert.clear();
@@ -166,7 +189,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-        }
+        },
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Update failed");
@@ -198,9 +221,14 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
         revokeOtherSessions: true,
       });
       if (result.error) throw new Error(result.error.message);
-      securityAlert.success("Password changed. Other sessions have been signed out.", 5);
+      securityAlert.success(
+        "Password changed. Other sessions have been signed out.",
+        5,
+      );
       toast.success("Password changed. Other sessions have been signed out.");
-      setCpCurrent(""); setCpNew(""); setCpConfirm("");
+      setCpCurrent("");
+      setCpNew("");
+      setCpConfirm("");
     } catch (err: any) {
       securityAlert.error(err.message || "Failed to change password.", 5);
       toast.error(err.message || "Failed to change password.");
@@ -227,8 +255,13 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
         callbackURL: "/dashboard",
       });
       if (result.error) throw new Error(result.error.message);
-      emailAlert.success(`Verification email sent to ${ceNewEmail}. Your email will update after you verify it.`, 5);
-      toast.success(`Verification email sent to ${ceNewEmail}. Your email will update after you verify it.`);
+      emailAlert.success(
+        `Verification email sent to ${ceNewEmail}. Your email will update after you verify it.`,
+        5,
+      );
+      toast.success(
+        `Verification email sent to ${ceNewEmail}. Your email will update after you verify it.`,
+      );
       setCeNewEmail("");
     } catch (err: any) {
       emailAlert.error(err.message || "Failed to request email change.", 5);
@@ -247,18 +280,31 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
         callbackURL: "/",
       });
       if (result.error && !result.error.message?.includes("7 days")) {
-        console.log(result.error.message, result.error)
+        console.log(result.error.message, result.error);
         throw new Error(result.error.message);
       }
 
-      deleteAlert.success("Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.", 5);
-      toast.success("Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.");
+      deleteAlert.success(
+        "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
+        5,
+      );
+      toast.success(
+        "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
+      );
       setShowDeleteModal(false);
       setTimeout(() => signOut().then(() => router.push("/")), 3000);
     } catch (err: any) {
-      if (err.message?.includes("7 days") || err.message?.includes("scheduled")) {
-        deleteAlert.success("Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.", 5);
-        toast.success("Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.");
+      if (
+        err.message?.includes("7 days") ||
+        err.message?.includes("scheduled")
+      ) {
+        deleteAlert.success(
+          "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
+          5,
+        );
+        toast.success(
+          "Account deactivated. It will be permanently deleted in 7 days. Log back in to cancel.",
+        );
         setShowDeleteModal(false);
         setTimeout(() => signOut().then(() => router.push("/")), 3000);
       } else {
@@ -277,7 +323,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
       toast.success("Successfully logged out", { id: toastId });
       router.push("/login");
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error("Logout failed. Please try again.");
     }
   };
@@ -291,7 +337,9 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
   const activeIndex = tabs.findIndex((t) => t.id === activeTab);
 
   return (
-    <div className={`fixed inset-0 z-50 transition-all duration-300 ${isOpen ? "visible opacity-100" : "invisible opacity-0"}`}>
+    <div
+      className={`fixed inset-0 z-50 transition-all duration-300 ${isOpen ? "visible opacity-100" : "invisible opacity-0"}`}
+    >
       {/* Dark Backdrop with Blur */}
       <div
         onClick={onClose}
@@ -299,14 +347,18 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
       />
 
       {/* Sliding Panel */}
-      <div className={`absolute top-0 right-0 bottom-0 w-full sm:w-[480px] bg-white dark:bg-glanz-black border-l border-slate-200 dark:border-charcoal/80 shadow-2xl flex flex-col justify-start overflow-y-auto transition-transform duration-300 ease-out text-slate-800 dark:text-white ${isOpen ? "translate-x-0" : "translate-x-full"
-        }`}>
-
+      <div
+        className={`absolute top-0 right-0 bottom-0 w-full sm:w-[480px] bg-white dark:bg-glanz-black border-l border-slate-200 dark:border-charcoal/80 shadow-2xl flex flex-col justify-start overflow-y-auto transition-transform duration-300 ease-out text-slate-800 dark:text-white ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         {/* Drawer Header */}
         <div className="p-5 border-b border-slate-200 dark:border-charcoal flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-glanz-gold" />
-            <span className="font-extrabold text-sm uppercase tracking-wider text-slate-900 dark:text-white">Account Profile Settings</span>
+            <span className="font-extrabold text-sm uppercase tracking-wider text-slate-900 dark:text-white">
+              Account Profile Settings
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -318,7 +370,6 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
 
         {/* Drawer Profile Card Content */}
         <div className="p-6 space-y-6 flex-1">
-
           {/* Header Card (Completely Column-Wise on Mobile to prevent overflow) */}
           <Card className="border border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black shadow-lg">
             <CardContent className="p-5 flex flex-col items-center justify-center text-center gap-4">
@@ -335,16 +386,31 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                   {isGoogle && (
                     <div className="absolute -bottom-1 -right-1 bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-full p-1 shadow-md">
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                        <path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z" />
-                        <path fill="#4285F4" d="M23.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18c-.75 1.48-1.18 3.15-1.18 4.93s.43 3.45 1.18 4.93l3.66-2.84z" />
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z"
+                        />
+                        <path
+                          fill="#4285F4"
+                          d="M23.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18c-.75 1.48-1.18 3.15-1.18 4.93s.43 3.45 1.18 4.93l3.66-2.84z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
                       </svg>
                     </div>
                   )}
                   {isFacebook && (
                     <div className="absolute -bottom-1 -right-1 bg-[#1877F2] border border-[#1877F2] rounded-full p-1 shadow-md">
-                      <svg className="w-3.5 h-3.5 fill-white" viewBox="0 0 24 24">
+                      <svg
+                        className="w-3.5 h-3.5 fill-white"
+                        viewBox="0 0 24 24"
+                      >
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                       </svg>
                     </div>
@@ -417,10 +483,11 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-[10px] uppercase tracking-wider font-bold transition-all duration-300 cursor-pointer ${isActive
+                  className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-[10px] uppercase tracking-wider font-bold transition-all duration-300 cursor-pointer ${
+                    isActive
                       ? "text-slate-800 dark:text-glanz-black font-extrabold"
                       : "text-slate-500 dark:text-cream/60 hover:text-slate-800 dark:hover:text-white"
-                    }`}
+                  }`}
                 >
                   <TabIcon className="w-3.5 h-3.5 shrink-0" />
                   <span>{tab.label}</span>
@@ -479,7 +546,9 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
 
                       {/* Status Check inside Drawer */}
                       <div className="bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal/60 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs">
-                        <span className="text-slate-500 dark:text-cream/50">Verification Status</span>
+                        <span className="text-slate-500 dark:text-cream/50">
+                          Verification Status
+                        </span>
                         {user?.emailVerified ? (
                           <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/15 px-2 py-0.5 rounded uppercase flex items-center gap-0.5">
                             Verified
@@ -518,13 +587,16 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4 space-y-3.5">
-                    <form onSubmit={handleChangePassword} className="space-y-3.5">
+                    <form
+                      onSubmit={handleChangePassword}
+                      className="space-y-3.5"
+                    >
                       <Field
                         label="Current Password"
                         value={cpCurrent}
                         onChange={setCpCurrent}
                         type="password"
-                        placeholder="••••••••"
+                        placeholder="Enter your current Password"
                         icon={Lock}
                       />
                       <ValidatedInput
@@ -537,7 +609,7 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                           type="password"
                           value={cpNew}
                           onChange={(e) => setCpNew(e.target.value)}
-                          placeholder="Min 6 chars"
+                          placeholder="Min 8 characters "
                           className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold transition-all placeholder-midgray"
                         />
                       </ValidatedInput>
@@ -553,7 +625,12 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
 
                       <Button
                         type="submit"
-                        disabled={cpLoading || !cpCurrent || cpNew.length < 6 || cpNew !== cpConfirm}
+                        disabled={
+                          cpLoading ||
+                          !cpCurrent ||
+                          cpNew.length < 6 ||
+                          cpNew !== cpConfirm
+                        }
                         className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {cpLoading ? "Updating..." : "Update Password"}
@@ -592,10 +669,15 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
 
                       <Button
                         type="submit"
-                        disabled={ceLoading || !emailSchema.safeParse(ceNewEmail).success}
+                        disabled={
+                          ceLoading ||
+                          !emailSchema.safeParse(ceNewEmail).success
+                        }
                         className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {ceLoading ? "Delivering..." : "Deliver Email Verification"}
+                        {ceLoading
+                          ? "Delivering..."
+                          : "Deliver Email Verification"}
                       </Button>
                     </form>
                   </CardContent>
@@ -616,9 +698,13 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                   </CardHeader>
                   <CardContent className="p-4 space-y-4">
                     <div className="bg-rose-50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/15 rounded-xl p-3 space-y-1.5 text-left">
-                      <p className="text-xs font-bold text-rose-600 dark:text-rose-300">Account Hold Deletion</p>
+                      <p className="text-xs font-bold text-rose-600 dark:text-rose-300">
+                        Account Hold Deletion
+                      </p>
                       <p className="text-[10px] text-slate-500 dark:text-cream/50 leading-relaxed">
-                        Permanent drop schedules after a 7-day grace deactivation. Re-sign in before hold expires to recover profile features.
+                        Permanent drop schedules after a 7-day grace
+                        deactivation. Re-sign in before hold expires to recover
+                        profile features.
                       </p>
                     </div>
 
@@ -646,9 +732,16 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
               <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/30 rounded-full flex items-center justify-center mx-auto text-rose-500 dark:text-rose-400 text-xl font-bold">
                 ⚠️
               </div>
-              <h3 className="text-xl font-extrabold text-rose-600 dark:text-rose-400">Request Account Deactivation</h3>
+              <h3 className="text-xl font-extrabold text-rose-600 dark:text-rose-400">
+                Request Account Deactivation
+              </h3>
               <p className="text-slate-600 dark:text-cream/60 text-xs leading-relaxed">
-                Your profile will be deactivated instantly and permanently deleted in <br /> <strong className="text-rose-600 dark:text-rose-300">7 days</strong>. Log back in before the hold expires to restore your account.
+                Your profile will be deactivated instantly and permanently
+                deleted in <br />{" "}
+                <strong className="text-rose-600 dark:text-rose-300">
+                  7 days
+                </strong>
+                . Log back in before the hold expires to restore your account.
               </p>
             </div>
 
@@ -675,7 +768,13 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
                 <ValidatedInput
                   label="Confirm Your Email"
                   value={delEmail}
-                  schema={z.string().email("Invalid email address").refine(val => val === user?.email, "Email does not match")}
+                  schema={z
+                    .string()
+                    .email("Invalid email address")
+                    .refine(
+                      (val) => val === user?.email,
+                      "Email does not match",
+                    )}
                   isSubmitted={false}
                 >
                   <input
@@ -695,7 +794,11 @@ export function ProfileDrawer({ isOpen, onClose, user, refetch }: ProfileDrawerP
             <div className="flex gap-3 pt-2">
               <Button
                 variant="outline"
-                onClick={() => { setShowDeleteModal(false); deleteAlert.clear(); setDelPassword(""); }}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  deleteAlert.clear();
+                  setDelPassword("");
+                }}
                 disabled={delLoading}
                 className="flex-1 rounded-xl"
               >

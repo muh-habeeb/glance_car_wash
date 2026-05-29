@@ -8,22 +8,31 @@ import { formatAuthError, ErrorDetail } from "../../utils/errorFormatter";
 import ErrorDisplay from "../../components/ErrorDisplay";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { z } from "zod";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 
-const emailSchema = z.string().min(1, "Email Address is required").email("Enter a valid email");
+const emailSchema = z
+  .string()
+  .min(1, "Email Address is required")
+  .email("Enter a valid email");
 const passwordSchema = z.string().min(1, "Password is required");
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  
+  const [email, setEmail] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("email") || "";
+  });
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const emailParam = params.get("email");
-    if (emailParam) setEmail(emailParam);
-
     const verifyToken = params.get("verifyToken");
     if (verifyToken) {
       // Auto-verify email
@@ -34,7 +43,8 @@ export default function LoginPage() {
           });
         } else {
           toast.success("Account verified successfully!", {
-            description: "Your email address has been confirmed. You can now sign in.",
+            description:
+              "Your email address has been confirmed. You can now sign in.",
           });
         }
         // Clean URL
@@ -140,7 +150,9 @@ export default function LoginPage() {
           description: formattedErr.whyItHappened,
         });
       } else {
-        setResendSuccess("A new verification email has been sent! Check your inbox.");
+        setResendSuccess(
+          "A new verification email has been sent! Check your inbox.",
+        );
         toast.success("Verification Email Sent", {
           description: "Please check your inbox to verify your email address.",
         });
@@ -156,7 +168,8 @@ export default function LoginPage() {
     }
   };
 
-  const isEmailNotVerified = error?.whatHappened === "Email Verification Required";
+  const isEmailNotVerified =
+    error?.whatHappened === "Email Verification Required";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4 transition-colors duration-300">
@@ -179,12 +192,18 @@ export default function LoginPage() {
 
           <ErrorDisplay
             error={error}
-            onActionClick={isEmailNotVerified ? handleResendVerification : undefined}
+            onActionClick={
+              isEmailNotVerified ? handleResendVerification : undefined
+            }
             actionText="Resend Verification Link"
             actionLoading={resendLoading}
           />
 
-          <form onSubmit={handleSubmit} className="space-y-4" aria-label="Sign in credentials form">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            aria-label="Sign in credentials form"
+          >
             <ValidatedInput
               label="Email Address"
               value={email}
@@ -203,7 +222,6 @@ export default function LoginPage() {
             </ValidatedInput>
 
             <div className="space-y-1 relative">
-
               <ValidatedInput
                 label="Password"
                 value={password}
@@ -227,7 +245,11 @@ export default function LoginPage() {
                 tabIndex={-1}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
               <div className="absolute right-1 -bottom-6 z-10">
                 <Link
@@ -243,9 +265,16 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading || !isFormValid}
-              className="mt-6 w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group mt-6 w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? (
+                "Signing in..."
+              ) : (
+                <span className="flex items-center justify-between font-semibold tracking-[1.2px]">
+                  Sign In
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </span>
+              )}
             </Button>
           </form>
 
@@ -266,7 +295,9 @@ export default function LoginPage() {
               <div className="w-full border-t border-slate-200 dark:border-charcoal"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-4 bg-slate-50 dark:bg-glanz-black text-slate-400 dark:text-midgray uppercase tracking-wider text-[10px] font-bold">Or continue with</span>
+              <span className="px-4 bg-slate-50 dark:bg-glanz-black text-slate-400 dark:text-midgray uppercase tracking-wider text-[10px] font-bold">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -278,11 +309,26 @@ export default function LoginPage() {
               onClick={() => handleSocialSignIn("google")}
               className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z" />
-                <path fill="#4285F4" d="M23.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18c-.75 1.48-1.18 3.15-1.18 4.93s.43 3.45 1.18 4.93l3.66-2.84z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <svg
+                className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18c-.75 1.48-1.18 3.15-1.18 4.93s.43 3.45 1.18 4.93l3.66-2.84z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
               </svg>
               Google
             </Button>

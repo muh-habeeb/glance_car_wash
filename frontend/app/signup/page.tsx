@@ -8,25 +8,45 @@ import { useRouter } from "next/navigation";
 import { formatAuthError, ErrorDetail } from "../../utils/errorFormatter";
 import ErrorDisplay from "../../components/ErrorDisplay";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { z } from "zod";
 import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { ConfirmPasswordInput } from "@/components/ui/ConfirmPasswordInput";
 
 import disposableDomains from "disposable-email-domains";
 import { extraBurners } from "../../lib/burnerDomains";
+import { PhoneInput } from "@/components/PhoneInput";
 
 // Define field-level Zod validation schemas
-const nameSchema = z.string().min(1, "Full Name is required").min(3, "Full Name must be at least 3 characters");
-const emailSchema = z.string().email("Enter a valid email").min(1, "Email Address is required").refine(
-  (email) => {
-    const domain = email.split("@")[1]?.toLowerCase();
-    return domain && !disposableDomains.includes(domain) && !extraBurners.includes(domain);
-  },
-  { message: "Registration rejected. Burner emails are not allowed." }
-);
-const phoneSchema = z.string().min(1, "Phone is required").startsWith("+", "Add country code to your phone number ").min(6, "Enter valid phone number");
-const passwordSchema = z.string().min(1, "Password is required").min(8, "Password must be at least 8 characters");
+const nameSchema = z
+  .string()
+  .min(1, "Full Name is required")
+  .min(3, "Full Name must be at least 3 characters");
+const emailSchema = z
+  .string()
+  .email("Enter a valid email")
+  .min(1, "Email Address is required")
+  .refine(
+    (email) => {
+      const domain = email.split("@")[1]?.toLowerCase();
+      return (
+        domain &&
+        !disposableDomains.includes(domain) &&
+        !extraBurners.includes(domain)
+      );
+    },
+    { message: "Registration rejected. Burner emails are not allowed." },
+  );
+const passwordSchema = z
+  .string()
+  .min(1, "Password is required")
+  .min(8, "Password must be at least 8 characters");
 
 export default function SignupPage() {
   const router = useRouter();
@@ -37,7 +57,8 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
+  const [countryCode, setCountryCode] = useState("ae");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorDetail | null>(null);
@@ -47,11 +68,12 @@ export default function SignupPage() {
   const isFormValid =
     nameSchema.safeParse(name).success &&
     emailSchema.safeParse(email).success &&
-    phoneSchema.safeParse(phone).success &&
+    isPhoneValid &&
+    phone.length > 0 &&
     passwordSchema.safeParse(password).success &&
     password === confirmPassword;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
 
@@ -71,7 +93,7 @@ export default function SignupPage() {
         email,
         password,
         phone,
-        whatsapp,
+        countryCode,
         callbackURL: window.location.origin + "/dashboard?verified=true",
       });
 
@@ -80,7 +102,9 @@ export default function SignupPage() {
         return;
       }
 
-      setSuccess("Account created, verification email has been sent please verify your account.");
+      setSuccess(
+        "Account created, verification email has been sent please verify your account.",
+      );
       setTimeout(() => {
         router.push(`/login?email=${encodeURIComponent(email)}`);
       }, 7000);
@@ -113,7 +137,8 @@ export default function SignupPage() {
             Create Account
           </CardTitle>
           <CardDescription className="text-slate-500 dark:text-cream text-xs mt-1">
-            Join us today for the best car wash experience
+            A Glanz account unlocks one-tap bookings, service reminders, and
+            member-only offers.
           </CardDescription>
         </CardHeader>
 
@@ -126,7 +151,11 @@ export default function SignupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4" aria-label="Sign up registration form">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            aria-label="Sign up registration form"
+          >
             <ValidatedInput
               label="Full Name"
               value={name}
@@ -161,39 +190,14 @@ export default function SignupPage() {
               />
             </ValidatedInput>
 
-            <div className="grid grid-cols-2 gap-4">
-              <ValidatedInput
-                label="Phone"
-                value={phone}
-                schema={phoneSchema}
-                isSubmitted={isSubmitted}
-              >
-                <input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1234567890"
-                  autoComplete="tel"
-                  className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
-                />
-              </ValidatedInput>
-              <ValidatedInput
-                label="WhatsApp (Optional)"
-                value={whatsapp}
-                isSubmitted={isSubmitted}
-              >
-                <input
-                  id="whatsapp"
-                  type="tel"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="+1234567890"
-                  autoComplete="tel"
-                  className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
-                />
-              </ValidatedInput>
-            </div>
+            <PhoneInput
+              onPhoneChange={(number, valid) => {
+                setPhone(number);
+                setIsPhoneValid(valid);
+              }}
+              onChangeCountry={setCountryCode}
+              isSubmitted={isSubmitted}
+            />
 
             <ValidatedInput
               label="Password"
@@ -223,9 +227,20 @@ export default function SignupPage() {
 
             <p className="text-[11px] text-slate-500 dark:text-cream/60 text-center leading-relaxed">
               By signing up, you agree to our{" "}
-              <Link href="/terms" className="text-glanz-gold hover:underline font-semibold">Terms of Service</Link>
+              <Link
+                href="/terms"
+                className="text-glanz-gold hover:underline font-semibold"
+              >
+                Terms of Service
+              </Link>
               {" and "}
-              <Link href="/privacy" className="text-glanz-gold hover:underline font-semibold">Privacy Policy</Link>.
+              <Link
+                href="/privacy"
+                className="text-glanz-gold hover:underline font-semibold"
+              >
+                Privacy Policy
+              </Link>
+              .
             </p>
 
             <Button
@@ -254,7 +269,9 @@ export default function SignupPage() {
               <div className="w-full border-t border-slate-200 dark:border-charcoal"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-4 bg-slate-50 dark:bg-glanz-black text-slate-400 dark:text-midgray uppercase tracking-wider text-[10px] font-bold">Or continue with</span>
+              <span className="px-4 bg-slate-50 dark:bg-glanz-black text-slate-400 dark:text-midgray uppercase tracking-wider text-[10px] font-bold">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -266,11 +283,26 @@ export default function SignupPage() {
               onClick={() => handleSocialSignIn("google")}
               className="flex items-center justify-center border border-slate-200 dark:border-charcoal rounded-xl hover:bg-slate-100 dark:hover:bg-charcoal text-slate-700 dark:text-white transition-all bg-white dark:bg-glanz-black/50 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z" />
-                <path fill="#4285F4" d="M23.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18c-.75 1.48-1.18 3.15-1.18 4.93s.43 3.45 1.18 4.93l3.66-2.84z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <svg
+                className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M12 5.04c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.77 14.97.68 12 .68c-4.3 0-8.01 2.47-9.82 6.07l3.66 2.84c.87-2.6 3.3-4.55 6.16-4.55z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18c-.75 1.48-1.18 3.15-1.18 4.93s.43 3.45 1.18 4.93l3.66-2.84z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
               </svg>
               Google
             </Button>
