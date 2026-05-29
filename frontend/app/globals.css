@@ -69,7 +69,7 @@
   --color-background: #0B0B0B;
   --color-foreground: #ffffff;
   --color-card: #0B0B0B;
-  --color-card-foreground: #ffffff;
+  --color-card-foreground: #ffffff,#ffcc56;
   --color-border: #2E2E2E;
   --color-input: #2E2E2E;
   --color-muted: #1e1e1e;
@@ -246,4 +246,4 @@ input[type="number"] {
 
 .dark .iti-glanz-theme .iti__selected-country:hover {
   background-color: #1e1e1e;
-}
+}

@@ -455,7 +455,7 @@ export function ProfileDrawer({
                   )}
                 </div>
               ) : (
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-glanz-gold to-deep-bronze flex items-center justify-center text-2xl font-bold text-glanz-black uppercase border border-glanz-gold/30 shrink-0 shadow-md">
+                <div className="w-16 h-16 rounded-full bg-linear-to-br from-glanz-gold to-deep-bronze flex items-center justify-center text-2xl font-bold text-glanz-black uppercase border border-glanz-gold/30 shrink-0 shadow-md">
                   {user?.name ? user.name.charAt(0) : "U"}
                 </div>
               )}

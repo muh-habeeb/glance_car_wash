@@ -172,7 +172,7 @@ export default function Dashboard() {
                   className="w-9.5 h-9.5 rounded-full object-cover border border-slate-200 dark:border-glanz-gold/40"
                 />
               ) : (
-                <div className="w-9.5 h-9.5 rounded-full bg-gradient-to-br from-glanz-gold to-deep-bronze flex items-center justify-center text-sm font-bold text-glanz-black uppercase border border-slate-200 dark:border-glanz-gold/40 shadow-md shadow-glanz-gold/10">
+                <div className="w-9.5 h-9.5 rounded-full bg-linear-to-br from-glanz-gold to-deep-bronze flex items-center justify-center text-sm font-bold text-glanz-black uppercase border border-slate-200 dark:border-glanz-gold/40 shadow-md shadow-glanz-gold/10">
                   {user?.name ? user.name.charAt(0) : "U"}
                 </div>
               )}

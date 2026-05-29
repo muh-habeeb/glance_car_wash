@@ -169,7 +169,7 @@ export default function LoginPage() {
           email,
           callbackURL: window.location.origin + "/dashboard",
         });
-        
+
         if (result?.error) {
           reject(result.error);
         } else {
@@ -214,13 +214,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4 transition-colors duration-300">
-      <Card className="w-full max-w-md border border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black text-slate-800 dark:text-white shadow-md dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-300">
+      <Card className="w-full max-w-md border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black text-slate-800 dark:text-white shadow-md dark:shadow-[0_-2px_3px_#ffcc56,0_0px_13px_transparent,0_0px_13px_transparent] transition-all duration-300">
         <CardHeader className="text-center pb-2">
-          <CardTitle className="text-3xl font-extrabold text-glanz-gold">
-            Welcome Back
+          <div className="text-center uppercase text-xs font-medium mb-1 tracking-[2px] text-glanz-gold">Sign In</div>
+          <CardTitle className="text-3xl font-extrabold text-white font-serif flex flex-col items-center">
+            Welcome Back.
+            <div className=" h-[2px] w-14 bg-amber-400 my-4"></div>
           </CardTitle>
           <CardDescription className="text-slate-500 dark:text-cream text-xs mt-1">
-            Sign in to continue to Glanz Premium Car Wash
+            Sign in to book your next wash, view your service history,
+            and manage saved vehicles.
           </CardDescription>
         </CardHeader>
 
@@ -246,7 +249,7 @@ export default function LoginPage() {
             aria-label="Sign in credentials form"
           >
             <ValidatedInput
-              label="Email Address"
+              label="Email"
               value={email}
               schema={emailSchema}
               isSubmitted={isSubmitted}
@@ -282,19 +285,19 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-4 flex items-center text-xs font-bold text-glanz-gold hover:text-soft-gold transition-colors cursor-pointer"
-                    tabIndex={-1}
+                    className="p-3 -ml-4 absolute inset-y-0 right-4 flex items-center text-xs font-bold text-glanz-gold hover:text-soft-gold transition-colors cursor-pointer"
+                    tabIndex={0}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
                 </div>
               </ValidatedInput>
-              
+
               <div className="flex justify-end mt-1">
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-glanz-gold hover:text-soft-gold transition-all font-semibold"
+                  className="text-xs text-glanz-gold hover:text-soft-gold transition-all font-semibold pl-3 pr-3 pb-3"
                   aria-label="Forgot your password?"
                 >
                   Forgot Password?
@@ -305,7 +308,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isBusy || !isFormValid}
-              className="group mt-6 w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group mt-2 w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Spinner size={18} className="text-glanz-black " />
@@ -319,15 +322,17 @@ export default function LoginPage() {
           </form>
 
           <div className="text-center pt-2">
-            <p className="text-slate-500 dark:text-cream text-xs">
+            <label className="text-slate-500 dark:text-cream text-xs" htmlFor="nav-signup">
               {"Don't have an account? "}
               <Link
+                id='nav-signup'
                 href="/signup"
-                className="text-glanz-gold hover:text-soft-gold font-semibold transition-all hover:underline"
+                tabIndex={0}
+                className="text-glanz-gold hover:text-soft-gold font-semibold transition-all hover:underline -ml-3 p-3"
               >
                 Sign Up
               </Link>
-            </p>
+            </label>
           </div>
 
           <div className="relative my-4">

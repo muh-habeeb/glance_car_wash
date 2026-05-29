@@ -98,7 +98,10 @@ app.use(globalRateLimiter);
 
 
 // --- API Routes ---
-// 3.5. Better Auth mount (MUST be before express.json to preserve request body stream)
+// 3.5. Parse cookie headers securely BEFORE auth routes
+app.use(cookieParser());
+
+// 3.6. Better Auth mount (MUST be before express.json to preserve request body stream)
 // Ensure requestContext is injected for auth hooks
 app.use(requestContextMiddleware);
 // Intercept Better Auth responses to handle state_mismatch redirects
@@ -123,8 +126,7 @@ app.all("/api/auth/*splat", (req, res, next) => {
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
-// 5. Parse cookie headers securely
-app.use(cookieParser());
+// 5. Removed cookieParser from here (moved above)
 
 // --- API Routes ---
 

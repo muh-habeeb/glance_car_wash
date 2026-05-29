@@ -177,18 +177,24 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4 transition-colors duration-300">
-      <Card className="w-full max-w-md border border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black text-slate-800 dark:text-white shadow-md dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-300">
+      <Card
+        className="w-full max-w-md border border-slate-200 dark:border-charcoal bg-slate-50 dark:bg-glanz-black text-slate-800 dark:text-white shadow-md dark:shadow-[0_-2px_3px_#ffcc56,0_0px_13px_transparent,0_0px_13px_transparent] transition-all duration-300"
+      >
         <CardHeader className="text-center pb-2">
-          <CardTitle className="text-3xl font-extrabold text-glanz-gold">
+          <CardDescription className="text-center uppercase text-xs font-medium mb-1 tracking-[2px] text-glanz-gold">
             Create Account
+          </CardDescription>
+          <CardTitle className="text-3xl font-extrabold text-white font-serif flex flex-col items-center ">
+            Start your shine.
+            <div className=" h-[2px] w-14 bg-amber-400 my-4"></div>
           </CardTitle>
           <CardDescription className="text-slate-500 dark:text-cream text-xs mt-1">
-            A Glanz account unlocks one-tap bookings, service reminders, and
-            member-only offers.
+            A Glanz account unlocks one-tap bookings, service
+            reminders, and member-only offers.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4 pt-4">
+        <CardContent className="space-y-4">
           <ErrorDisplay
             error={error}
             expiryMs={4000}
@@ -297,10 +303,10 @@ export default function SignupPage() {
             <Button
               type="submit"
               disabled={isBusy || !isFormValid}
-              className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-glanz-gold hover:bg-soft-gold text-white font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <Spinner size={18} className="text-glanz-black " />
+                <Spinner size={18} className="text-cream " />
               ) : (
                 <span className="flex items-center justify-between font-semibold tracking-[1.2px]">
                   Sign In
@@ -315,7 +321,7 @@ export default function SignupPage() {
               {"Already have an account? "}
               <Link
                 href="/login"
-                className="text-glanz-gold hover:text-soft-gold font-semibold transition-all hover:underline"
+                className="text-glanz-gold hover:text-soft-gold font-semibold transition-all hover:underline  p-3 -ml-3"
               >
                 Sign In
               </Link>

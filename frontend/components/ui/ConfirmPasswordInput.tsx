@@ -72,7 +72,7 @@ export function ConfirmPasswordInput({
   return (
     <div className="space-y-1 w-full relative">
       <div className="flex justify-between items-center">
-        <label htmlFor={id} className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
+        <label htmlFor={id} className="block text-xs font-semibold text-glanz-gold dark:text-glanz-gold uppercase tracking-[3px]">
           {label}
         </label>
         {value.length > 0 && (
@@ -138,7 +138,7 @@ export function ConfirmPasswordInput({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-midgray hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
+          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-midgray hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer p-4"
           tabIndex={-1}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >

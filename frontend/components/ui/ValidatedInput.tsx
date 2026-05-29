@@ -100,7 +100,7 @@ export function ValidatedInput({
 
   return (
     <div className="space-y-1 w-full">
-      <label htmlFor={child.props.id} className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
+      <label htmlFor={child.props.id} className="block text-xs font-semibold text-glanz-gold dark:text-glanz-gold uppercase tracking-[3px]">
         {label}
       </label>
       {clonedChild}
