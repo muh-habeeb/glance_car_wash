@@ -12,19 +12,19 @@ export default function HomePage() {
             <span className="text-xl font-bold tracking-wider">GLANZ</span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-            <Link href="#services" className="hover:text-primary transition-colors">Services</Link>
-            <Link href="#about" className="hover:text-primary transition-colors">About Us</Link>
-            <Link href="#contact" className="hover:text-primary transition-colors">Contact</Link>
+            <Link href="/services" className="hover:text-primary transition-colors">Services</Link>
+            <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
+            <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               Sign In
             </Link>
-            <Link 
-              href="/signup" 
+            <Link
+              href="/signup"
               className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold transition-all shadow-[0_0_20px_rgba(216,171,68,0.2)] hover:shadow-[0_0_30px_rgba(216,171,68,0.4)]"
             >
               Book Now
@@ -39,28 +39,28 @@ export default function HomePage() {
           <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
           Premium Detailing Studio
         </div>
-        
+
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
           The Ultimate <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-200">
             Spa For Your Car
           </span>
         </h1>
-        
+
         <p className="max-w-2xl mx-auto text-lg text-muted-foreground mb-12 leading-relaxed">
-          Experience unmatched brilliance with our luxury hand-wash and ceramic coating services. 
+          Experience unmatched brilliance with our luxury hand-wash and ceramic coating services.
           We treat every vehicle like a masterpiece.
         </p>
-        
+
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link 
-            href="/signup" 
+          <Link
+            href="/signup"
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
           >
             Explore Services
           </Link>
-          <Link 
-            href="#video" 
+          <Link
+            href="/video"
             className="w-full sm:w-auto px-8 py-4 rounded-full border border-border font-semibold hover:bg-muted transition-colors"
           >
             Watch Video
@@ -74,7 +74,7 @@ export default function HomePage() {
             <h3 className="text-xl font-bold mb-3">Foam Cannon Wash</h3>
             <p className="text-muted-foreground">Thick, lubricating snow foam safely lifts dirt and grime without scratching your delicate clear coat.</p>
           </div>
-          
+
           <div className="p-8 rounded-3xl border border-border bg-card hover:border-primary/50 transition-all">
             <Shield className="h-10 w-10 text-primary mb-6" />
             <h3 className="text-xl font-bold mb-3">Ceramic Coating</h3>

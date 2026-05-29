@@ -29,6 +29,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    viewTransition: true,
+  },
   // async rewrites() {
   //   // If the server URL is not defined, default to Render
   //   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "https://glance-car-wash.onrender.com";

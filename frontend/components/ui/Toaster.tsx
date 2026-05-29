@@ -14,7 +14,7 @@ export function Toaster() {
   return (
     <Sonner
       theme={(resolvedTheme as "light" | "dark") || "light"}
-      position="top-center"
+      position="top-right"
       className="toaster group"
       toastOptions={{
         classNames: {
