@@ -7,9 +7,9 @@ export const getVerifyEmailTemplate = (name: string, verifyUrl: string): string 
   const content = `
     <h1 style="color: #D8AB44; margin-top: 0; font-size: 24px; font-weight: 700;">Verify Your Email Address</h1>
     <p style="margin: 0 0 16px 0; font-size: 16px; color: #ffffff;">Welcome ${name}!</p>
-    <p style="margin: 0 0 20px 0; font-size: 15px; color: #F5EFE2; opacity: 0.9;">
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #F5EFE2; line-height: 24px;">
       Thank you for joining <strong>Glanz Premium Car Wash</strong>.
-      To activate your account and verify your email address, please click the button below:
+      Please click the button below to verify your email address. For your security, this verification link will automatically expire in <strong>24 hours</strong>.
     </p>
     
     <div style="text-align: center;">

@@ -26,8 +26,8 @@ function ResetPasswordForm() {
   const [error, setError] = useState<ErrorDetail | null>(null);
   const [success, setSuccess] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const isFormValid = 
-    passwordSchema.safeParse(password).success && 
+  const isFormValid =
+    passwordSchema.safeParse(password).success &&
     password === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,7 +82,7 @@ function ResetPasswordForm() {
           Enter and confirm your new secure password below
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4 pt-4">
         <ErrorDisplay error={error} />
 
@@ -94,56 +94,56 @@ function ResetPasswordForm() {
 
         {!token ? (
           <div className="pt-2 pb-4">
-            <ErrorDisplay 
+            <ErrorDisplay
               error={{
                 whatHappened: "Invalid or Missing Security Token",
                 whyItHappened: "No valid reset token was found in your URL.",
                 whatToDoNext: "Please request a new password reset link."
-              }} 
+              }}
             />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-          <ValidatedInput
-            label="New Password"
-            value={password}
-            schema={passwordSchema}
-            isSubmitted={isSubmitted}
-          >
-            <input
-              id="password"
-              type="password"
+            <ValidatedInput
+              label="New Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-              className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
+              schema={passwordSchema}
+              isSubmitted={isSubmitted}
+            >
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
+              />
+            </ValidatedInput>
+
+            <ConfirmPasswordInput
+              id="confirmPassword"
+              label="Confirm Password"
+              value={confirmPassword}
+              onValueChange={setConfirmPassword}
+              passwordToMatch={password}
+              isSubmitted={isSubmitted}
             />
-          </ValidatedInput>
 
-          <ConfirmPasswordInput
-            id="confirmPassword"
-            label="Confirm Password"
-            value={confirmPassword}
-            onValueChange={setConfirmPassword}
-            passwordToMatch={password}
-            isSubmitted={isSubmitted}
-          />
-
-          <Button
-            type="submit"
-            disabled={loading || !isFormValid}
-            className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Processing..." : "Update Password"}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              disabled={loading || !isFormValid}
+              className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Updating..." : "Update Password"}
+            </Button>
+          </form>
         )}
 
         <div className="mt-8 text-center border-t border-slate-200 dark:border-charcoal pt-6">
           <p className="text-slate-500 dark:text-cream text-xs">
             Want to go back?{" "}
-            <Link 
+            <Link
               href="/login"
               className="text-glanz-gold hover:text-soft-gold font-semibold transition-all hover:underline"
             >

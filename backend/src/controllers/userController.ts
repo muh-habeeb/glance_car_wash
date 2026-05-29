@@ -54,17 +54,18 @@ const updateProfileSchema = z.object({
   phone: z
     .string()
     .regex(
-      /^\+[1-9]\d{6,14}$/,
-      "Must be a valid phone number starting with '+' and country code"
+      /^\+\d{3,14}$/,
+      "Must start with country code (+code) and enter a valid number"
     )
     .optional(),
   whatsapp: z
     .string()
     .regex(
-      /^\+[1-9]\d{6,14}$/,
-      "Must be a valid phone number starting with '+' and country code"
+      /^\+\d{3,14}$/,
+      "Must start with country code (+code) and enter a valid number"
     )
-    .optional(),
+    .optional()
+    .or(z.literal("")),
 });
 
 /**
@@ -97,10 +98,10 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response): Prom
     const { name, phone, whatsapp } = validatedData;
 
     // Only update provided fields (patch semantics)
-    const updateData: Record<string, string | undefined> = {};
+    const updateData: Record<string, string | null | undefined> = {};
     if (name !== undefined) updateData.name = name.trim();
     if (phone !== undefined) updateData.phone = phone;
-    if (whatsapp !== undefined) updateData.whatsapp = whatsapp;
+    if (whatsapp !== undefined) updateData.whatsapp = whatsapp === "" ? null : whatsapp;
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({ success: false, message: "No valid fields provided to update." });
@@ -124,9 +125,10 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response): Prom
     res.status(200).json({ success: true, message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const errorMessages = error.issues.map((err: z.ZodIssue) => `${err.path.join(".")}: ${err.message}`).join(", ");
       res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: `Validation failed: ${errorMessages}`,
         errors: error.issues.map((err: z.ZodIssue) => ({ path: err.path.join("."), message: err.message })),
       });
       return;

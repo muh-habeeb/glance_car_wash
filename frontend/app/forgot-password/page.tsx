@@ -9,10 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { z } from "zod";
+import { Spinner } from "@/components/ui/Spinner";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import { toast } from "sonner";
 
 const emailSchema = z.string().min(1, "Email Address is required").email("Enter a valid email");
 
 export default function ForgotPasswordPage() {
+  // Redirect authenticated users to dashboard
+  const { isLoading: isCheckingAuth } = useAuthRedirect("/dashboard");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorDetail | null>(null);
@@ -37,16 +42,42 @@ export default function ForgotPasswordPage() {
         redirectTo: window.location.origin + "/reset-password",
       });
       if (result?.error) {
+        const errMsg = result.error?.message?.toLowerCase() || "";
+        const errCode = result.error?.code?.toLowerCase() || "";
+
+        // Check if the backend says the user doesn't exist
+        if (
+          errCode === "user_not_found" ||
+          errMsg.includes("user not found") ||
+          errMsg.includes("no user") ||
+          errMsg.includes("not found") ||
+          errMsg === "user_not_found"
+        ) {
+          toast.error("Account Not Found", {
+            description: "We couldn't find a Glanz account linked to this email address. Please check and try again.",
+          });
+          return;
+        }
+
         setError(formatAuthError(result.error));
         return;
       }
-      setSuccess("If the email is registered with us, you will receive a reset link shortly in your inbox.");
+      setSuccess("A password reset link has been successfully sent to your email!");
     } catch (err: any) {
       setError(formatAuthError(err));
     } finally {
       setLoading(false);
     }
   };
+
+  // Show a minimal loading state while checking auth session
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black">
+        <Spinner size={28} className="text-glanz-gold" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-glanz-black text-slate-800 dark:text-white p-4 relative overflow-hidden transition-colors duration-300">
@@ -96,7 +127,7 @@ export default function ForgotPasswordPage() {
               disabled={loading || !isFormValid}
               className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Processing..." : "Send Reset Link"}
+              {loading ? <Spinner size={18} className="text-glanz-black" /> : "Send Reset Link"}
             </Button>
           </form>
 

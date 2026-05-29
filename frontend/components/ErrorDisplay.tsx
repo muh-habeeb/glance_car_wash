@@ -1,19 +1,39 @@
 import { ErrorDetail } from "../utils/errorFormatter";
+import { useState, useEffect } from "react";
 
 interface ErrorDisplayProps {
   error: ErrorDetail | null;
   onActionClick?: () => void;
   actionText?: string;
   actionLoading?: boolean;
+  expiryMs?: number;
+  onExpire?: () => void;
 }
 
 export default function ErrorDisplay({ 
   error, 
   onActionClick, 
   actionText, 
-  actionLoading 
+  actionLoading,
+  expiryMs,
+  onExpire
 }: ErrorDisplayProps) {
-  if (!error) return null;
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    if (error) {
+      setIsVisible(true);
+      if (expiryMs) {
+        const timer = setTimeout(() => {
+          setIsVisible(false);
+          if (onExpire) onExpire();
+        }, expiryMs);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [error, expiryMs, onExpire]);
+
+  if (!error || !isVisible) return null;
 
   return (
     <div 

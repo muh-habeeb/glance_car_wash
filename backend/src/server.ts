@@ -16,6 +16,7 @@ import {
 } from "./middlewares/security.js";
 import { errorHandler } from "./middlewares/error.js";
 import { loggerMiddleware } from "./middlewares/loggerMiddleware.js";
+import { requestContextMiddleware } from "./middlewares/requestContext.js";
 import { env } from "./config/env.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -98,8 +99,25 @@ app.use(globalRateLimiter);
 
 // --- API Routes ---
 // 3.5. Better Auth mount (MUST be before express.json to preserve request body stream)
-// Use app.all with named wildcard — path-to-regexp v8 (Express 5) requires named wildcards like /*splat
-app.all("/api/auth/*splat", toNodeHandler(auth));
+// Ensure requestContext is injected for auth hooks
+app.use(requestContextMiddleware);
+// Intercept Better Auth responses to handle state_mismatch redirects
+app.all("/api/auth/*splat", (req, res, next) => {
+  const originalSetHeader = res.setHeader.bind(res);
+  res.setHeader = function(name: string, value: any) {
+    if (name.toLowerCase() === 'location' && typeof value === 'string') {
+      if (value.includes("error=state_mismatch") || value.includes("error=invalid_state")) {
+        console.error(`[Auth Error]: State mismatch detected during OAuth. Redirecting user to login page.`);
+        value = `${env.FRONTEND_URL || "http://localhost:3000"}/login?error=state_mismatch`;
+      } else if (value.includes("error=Phone_number_is_required")) {
+        console.error(`[Auth Error]: Phone number missing during social login. Redirecting user to signup page.`);
+        value = `${env.FRONTEND_URL || "http://localhost:3000"}/signup?error=missing_phone`;
+      }
+    }
+    return originalSetHeader(name, value);
+  };
+  toNodeHandler(auth)(req, res);
+});
 
 // 4. Request parsing with payload limits to prevent large-body attacks
 app.use(express.json({ limit: "10kb" }));
@@ -131,8 +149,16 @@ app.get("/api/health", (req, res) => {
 //   throw new Error("Test error for GlitchTip");
 // });
 
+// Serve favicon to prevent browser 404 warnings
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "src", "assets", "logo", "gold_logo_no_text.png"));
+});
+
 // 404 Route Not Found Handler
 app.use((req, res) => {
+  if (req.path === "/") {
+    return res.redirect(env.FRONTEND_URL);
+  }
   res.status(404).json({
     success: false,
     message: "Route not found",

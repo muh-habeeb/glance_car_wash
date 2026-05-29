@@ -11,6 +11,7 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const disposableDomains = require("disposable-email-domains") as string[];
 import { extraBurners } from "./burnerDomains.js";
+import { requestContext } from "../middlewares/requestContext.js";
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -121,6 +122,27 @@ export const auth = betterAuth({
           if (user.password && !user.phone) {
             throw new Error("Phone number is required");
           }
+
+          // For social login (no password), intercept cookies to find the phone number
+          if (!user.password && !user.phone) {
+            const req = requestContext.getStore();
+            if (req && req.cookies && req.cookies.social_signup_phone) {
+              const decodedPhone = decodeURIComponent(req.cookies.social_signup_phone);
+              const cleanedPhone = decodedPhone.replace(/[\s\-()]/g, ''); // Strip visual formatting
+              
+              if (/^\+\d{4,15}$/.test(cleanedPhone)) {
+                user.phone = cleanedPhone;
+              } else {
+                console.warn(`[Auth Hook] Invalid phone format received from social cookie: ${decodedPhone}`);
+              }
+            }
+          }
+
+          // If STILL no phone (social login without the cookie, or bypassed frontend), reject
+          if (!user.phone) {
+            throw new APIError("BAD_REQUEST", { message: "Phone number is required for registration." });
+          }
+
           return {
             data: user
           };
@@ -233,6 +255,22 @@ export const auth = betterAuth({
                 if (existing) {
                   throw new APIError("BAD_REQUEST", {
                     message: "This email address is already registered."
+                  });
+                }
+              }
+            }
+          },
+          {
+            matcher: (context) => context.path === "/request-password-reset",
+            handler: async (context) => {
+              const body = context.body as any;
+              if (body?.email) {
+                const existing = await prisma.user.findUnique({
+                  where: { email: body.email.toLowerCase().trim() }
+                });
+                if (!existing) {
+                  throw new APIError("NOT_FOUND", {
+                    message: "user_not_found"
                   });
                 }
               }

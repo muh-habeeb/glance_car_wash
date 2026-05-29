@@ -7,9 +7,9 @@ export const getResetPasswordTemplate = (name: string, resetUrl: string): string
   const content = `
     <h1 style="color: #D8AB44; margin-top: 0; font-size: 24px; font-weight: 700;">Password Reset Request</h1>
     <p style="margin: 0 0 16px 0; font-size: 16px; color: #ffffff;">Hello ${name},</p>
-    <p style="margin: 0 0 20px 0; font-size: 15px; color: #F5EFE2; opacity: 0.9;">
-      We received a request to reset the password for your account at <strong>Glanz Premium Car Wash</strong>. 
-      If you made this request, please click the button below to set a new password:
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #F5EFE2; line-height: 24px;">
+      We received a request to reset your password for your <strong>Glanz Premium Car Wash</strong> account. 
+      Please click the button below to choose a new password. For your security, this link will automatically expire in <strong>1 hour</strong>.
     </p>
     
     <div style="text-align: center;">

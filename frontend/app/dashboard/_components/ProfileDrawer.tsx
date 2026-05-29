@@ -107,6 +107,16 @@ const emailSchema = z
     { message: "Burner emails are not allowed." },
   );
 
+const phoneSchema = z
+  .string()
+  .regex(/^\+\d{3,14}$/, "Must start with country code (+code) and enter a valid number");
+
+const whatsappSchema = z
+  .string()
+  .regex(/^\+\d{3,14}$/, "Must start with country code (+code) and enter a valid number")
+  .optional()
+  .or(z.literal(""));
+
 export function ProfileDrawer({
   isOpen,
   onClose,
@@ -151,6 +161,34 @@ export function ProfileDrawer({
     setPPhone(user?.phone || "");
     setPWhatsapp(user?.whatsapp || "");
   }
+
+  // Fetch full profile (including custom fields like phone/whatsapp) from backend when drawer opens
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/users/profile`, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            // Update local states with full backend data
+            setPName(data.user.name || "");
+            setPPhone(data.user.phone || "");
+            setPWhatsapp(data.user.whatsapp || "");
+            setPrevUser({ ...user, ...data.user }); // Merge so hasChanges calculates correctly
+          }
+        })
+        .catch(err => console.error("Failed to load full profile", err));
+    }
+  }, [isOpen, user?.id]);
+
+  const hasChanges = 
+    pName.trim() !== (user?.name || "") || 
+    pPhone !== (user?.phone || "") || 
+    pWhatsapp !== (user?.whatsapp || "");
+
+  const isProfileValid = 
+    phoneSchema.safeParse(pPhone).success && 
+    whatsappSchema.safeParse(pWhatsapp).success &&
+    pName.trim().length >= 2;
 
   // Change password forms
   const [cpCurrent, setCpCurrent] = useState("");
@@ -526,23 +564,45 @@ export function ProfileDrawer({
                         icon={User}
                       />
 
-                      <Field
+                      <ValidatedInput
                         label="Phone Number"
                         value={pPhone}
-                        onChange={setPPhone}
-                        placeholder="+1234567890"
-                        type="tel"
-                        icon={Phone}
-                      />
+                        schema={phoneSchema}
+                        isSubmitted={false}
+                      >
+                        <input
+                          type="tel"
+                          value={pPhone}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (/^[+\d]*$/.test(val)) setPPhone(val);
+                          }}
+                          placeholder="+1234567890"
+                          pattern="^\+\d{3,14}$"
+                          title="Must start with country code (+code) and enter a valid number"
+                          className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
+                        />
+                      </ValidatedInput>
 
-                      <Field
-                        label="WhatsApp Number"
+                      <ValidatedInput
+                        label="WhatsApp Number (Optional)"
                         value={pWhatsapp}
-                        onChange={setPWhatsapp}
-                        placeholder="+1234567890"
-                        type="tel"
-                        icon={Smartphone}
-                      />
+                        schema={whatsappSchema}
+                        isSubmitted={false}
+                      >
+                        <input
+                          type="tel"
+                          value={pWhatsapp}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (/^[+\d]*$/.test(val)) setPWhatsapp(val);
+                          }}
+                          placeholder="+1234567890"
+                          pattern="^\+\d{3,14}$"
+                          title="Must start with country code (+code) and enter a valid number"
+                          className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
+                        />
+                      </ValidatedInput>
 
                       {/* Status Check inside Drawer */}
                       <div className="bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal/60 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs">
@@ -564,8 +624,8 @@ export function ProfileDrawer({
 
                       <Button
                         type="submit"
-                        disabled={pLoading}
-                        className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs"
+                        disabled={pLoading || !hasChanges || !isProfileValid}
+                        className="w-full bg-glanz-gold hover:bg-soft-gold text-glanz-black font-extrabold py-3 rounded-xl transition-all shadow-md shadow-glanz-gold/10 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {pLoading ? "Saving..." : "Save Profile Details"}
                       </Button>
@@ -696,7 +756,7 @@ export function ProfileDrawer({
                       Serious account deactivations.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-4 space-y-4">
+                  <CardContent className="p-4 space-y-4 -mt-12">
                     <div className="bg-rose-50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/15 rounded-xl p-3 space-y-1.5 text-left">
                       <p className="text-xs font-bold text-rose-600 dark:text-rose-300">
                         Account Hold Deletion
