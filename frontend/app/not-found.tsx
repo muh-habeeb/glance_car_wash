@@ -142,20 +142,28 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-6 pt-12 w-full sm:w-auto relative z-10 justify-center">
           <Link
             href="/"
-            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 text-xs sm:text-sm font-semibold tracking-widest uppercase text-primary-foreground bg-primary overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(216,171,68,0.4)]"
+            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 text-xs sm:text-sm font-bold tracking-widest uppercase text-primary bg-background border border-primary/40 overflow-hidden transition-all hover:border-primary hover:shadow-[0_0_30px_rgba(216,171,68,0.3)] hover:text-primary-foreground"
             style={{ borderRadius: '2px' }}
           >
-            <div className="absolute inset-0 w-full h-full bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out skew-x-12"></div>
-            <Home className="w-4 h-4 relative z-10" />
-            <span className="relative z-10">Return Home</span>
+            {/* Premium Animated Fill */}
+            <div className="absolute inset-0 w-full h-full bg-primary origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
+            
+            {/* Shimmer Effect */}
+            <div className="absolute top-0 -inset-full h-full w-1/2 z-0 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[300%] transition-all duration-1000 ease-in-out"></div>
+
+            <Home className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110" />
+            <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">Return Home</span>
           </Link>
+          
           <button
             onClick={() => window.history.back()}
-            className="group inline-flex items-center justify-center gap-3 px-10 py-4 text-xs sm:text-sm font-semibold tracking-widest uppercase text-foreground bg-transparent border border-border hover:border-primary/60 transition-colors"
-            style={{ borderRadius: '2px' }}
+            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 text-xs sm:text-sm font-semibold tracking-widest uppercase text-muted-foreground transition-all hover:text-foreground"
           >
-            <MoveLeft className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span>Go Back</span>
+            {/* Sleek Expanding Underline */}
+            <span className="absolute bottom-2 left-1/2 -translate-x-1/2 w-0 h-[1.5px] bg-primary transition-all duration-300 ease-out group-hover:w-1/2 opacity-0 group-hover:opacity-100"></span>
+            
+            <MoveLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1.5 group-hover:text-primary" />
+            <span className="relative z-10">Go Back</span>
           </button>
         </div>
       </div>
