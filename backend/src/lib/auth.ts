@@ -19,8 +19,11 @@ export const auth = betterAuth({
   trustedOrigins: [env.FRONTEND_URL, ...(env.CORS_ORIGIN || [])],
   advanced: {
     defaultCookieAttributes: {
-      sameSite: "lax",
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
       secure: env.NODE_ENV === "production",
+    },
+    crossSubDomainCookies: {
+      enabled: true,
     }
   },
 
@@ -123,7 +126,7 @@ export const auth = betterAuth({
             throw new Error("Phone number is required");
           }
 
-          // For social login (no password), intercept cookies to find the phone number
+          // For social login (no password), intercept cookies to find the phone number (if available)
           if (!user.password && !user.phone) {
             const req = requestContext.getStore();
             if (req && req.cookies && req.cookies.social_signup_phone) {
@@ -136,11 +139,6 @@ export const auth = betterAuth({
                 console.warn(`[Auth Hook] Invalid phone format received from social cookie: ${decodedPhone}`);
               }
             }
-          }
-
-          // If STILL no phone (social login without the cookie, or bypassed frontend), reject
-          if (!user.phone) {
-            throw new APIError("BAD_REQUEST", { message: "Phone number is required for registration." });
           }
 
           return {

@@ -18,8 +18,8 @@ model User {
   name            String
   email           String            @unique
   password        String?
-  phone           String?            // International phone number
-  whatsapp        String?           // International WhatsApp number
+  phone           String?           @unique // International phone number
+  whatsapp        String?           @unique // International WhatsApp number
   role            Role              @default(USER)
   is_active       Boolean           @default(true)
   createdAt       DateTime          @default(now())
