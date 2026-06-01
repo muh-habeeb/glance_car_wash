@@ -13,6 +13,22 @@ enum Role {
   SUPERADMIN
 }
 
+enum ServiceCategory {
+  CAR_WASH
+  CAR_CARE
+  CAR_TINTING
+  CAR_SERVICE
+  ACCESSORIES
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id              String            @id @default(uuid())
   name            String
@@ -27,6 +43,8 @@ model User {
   
   accountDeletion AccountDeletion?  @relation("UserAccountDeletion")
   adminDeletions  AccountDeletion[] @relation("AdminDeletions")
+  bookings        Booking[]
+  bookingHistory  BookingHistory[]
 
   // Better Auth fields
   emailVerified   Boolean           @default(false)
@@ -121,4 +139,121 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// ─── Car Services Catalogue ───────────────────────────────────────────────────
+
+model CarService {
+  id               String          @id @default(uuid())
+  name             String
+  category         ServiceCategory
+  shortDescription String
+  longDescription  String?
+  price            Decimal         @db.Decimal(10, 2)
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  bookings         Booking[]
+
+  @@index([category])
+  @@index([isActive])
+  @@map("car_service")
+}
+
+// ─── Available Places (admin-managed) ────────────────────────────────────────
+
+model AvailablePlace {
+  id        String    @id @default(uuid())
+  name      String
+  address   String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  bookings  Booking[]
+
+  @@index([isActive])
+  @@map("available_place")
+}
+
+// ─── Booking Slots (admin/staff-managed) ─────────────────────────────────────
+
+model BookingSlot {
+  id            String    @id @default(uuid())
+  date          DateTime
+  totalSpaces   Int
+  isClosed      Boolean   @default(false)
+  closedReason  String?
+  createdBy     String    // userId of creator
+  updatedBy     String?   // userId of last editor
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  bookings      Booking[]
+
+  @@index([date])
+  @@index([isClosed])
+  @@map("booking_slot")
+}
+
+// ─── Bookings ─────────────────────────────────────────────────────────────────
+
+model Booking {
+  id                    String         @id @default(uuid())
+  userId                String
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId             String
+  service               CarService     @relation(fields: [serviceId], references: [id])
+  slotId                String
+  slot                  BookingSlot    @relation(fields: [slotId], references: [id])
+  placeId               String
+  place                 AvailablePlace @relation(fields: [placeId], references: [id])
+
+  // Snapshot of user details at booking time
+  name                  String
+  email                 String
+  phone                 String
+  whatsapp              String?
+  notes                 String?
+
+  status                BookingStatus @default(PENDING_PAYMENT)
+
+  // Stripe
+  stripePaymentIntentId String?
+  amountPaid            Decimal?      @db.Decimal(10, 2)
+
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  history               BookingHistory[]
+
+  @@index([userId])
+  @@index([slotId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("booking")
+}
+
+// ─── Booking History (full audit trail) ──────────────────────────────────────
+
+model BookingHistory {
+  id             String         @id @default(uuid())
+  bookingId      String
+  booking        Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  changedById    String
+  changedBy      User           @relation(fields: [changedById], references: [id], onDelete: Cascade)
+  changedByName  String         // snapshot
+  changedByRole  String         // snapshot
+
+  fromStatus     BookingStatus?
+  toStatus       BookingStatus
+  note           String?
+
+  createdAt      DateTime       @default(now())
+
+  @@index([bookingId])
+  @@index([createdAt])
+  @@map("booking_history")
 }

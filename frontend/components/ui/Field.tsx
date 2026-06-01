@@ -20,7 +20,7 @@ const Field = ({
 }) => {
   return (
     <div className="space-y-1 w-full text-left">
-      <label className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
+      <label className="block text-xs font-semibold text-glanz-gold dark:text-glanz-gold uppercase tracking-[3px]">
         {label}
       </label>
       <div className="relative rounded-xl overflow-hidden">

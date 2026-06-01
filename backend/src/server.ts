@@ -20,8 +20,11 @@ import { requestContextMiddleware } from "./middlewares/requestContext.js";
 import { env } from "./config/env.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 import * as Sentry from "@sentry/node";
 import { initDeletionSweeper } from "./services/deletionSweeper.js";
+import { seedCarServices } from "./services/carServiceSeeder.js";
+import { seedAvailablePlaces } from "./services/availablePlacesSeeder.js";
 import { auth } from "./lib/auth.js";
 import { toNodeHandler } from "better-auth/node";
 // import { initSuperAdmin } from "./services/superAdminSeeder.js";
@@ -46,7 +49,9 @@ const startDatabasePolling = async () => {
       await prisma.$queryRaw`SELECT 1`;
       connected = true;
       console.log("Database connected successfully.");
-      // If needed in the future, initSuperAdmin() can be called here once connected.
+      // Seed static data (upsert-safe, runs once)
+      await seedCarServices();
+      await seedAvailablePlaces();
     } catch (error: any) {
       if (error.code === "P1001" || error.message?.includes("Can't reach database server")) {
         console.log("Cannot connect to db. Retrying in 5 seconds...");
@@ -107,7 +112,7 @@ app.use(requestContextMiddleware);
 // Intercept Better Auth responses to handle state_mismatch redirects
 app.all("/api/auth/*splat", (req, res, next) => {
   const originalSetHeader = res.setHeader.bind(res);
-  res.setHeader = function(name: string, value: any) {
+  res.setHeader = function (name: string, value: any) {
     if (name.toLowerCase() === 'location' && typeof value === 'string') {
       if (value.includes("error=state_mismatch") || value.includes("error=invalid_state")) {
         console.error(`[Auth Error]: State mismatch detected during OAuth. Redirecting user to login page.`);
@@ -133,6 +138,7 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 // user profile and admin routes
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api", bookingRoutes);
 
 // Better Auth wildcard route
 

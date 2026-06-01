@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import IntlTelInput from "@intl-tel-input/react";
 import "intl-tel-input/styles";
 
@@ -11,18 +11,49 @@ interface PhoneInputProps {
   onChangeCountry: (countryCode: string) => void;
   /** If true, show validation errors even if the field hasn't been touched */
   isSubmitted?: boolean;
+  /** Initial phone number value */
+  initialValue?: string;
+  /** Label text for the input */
+  label?: string;
+  /** If true, the field is not required and will not show a "required" error when empty */
+  optional?: boolean;
 }
 
 export function PhoneInput({
   onPhoneChange,
   onChangeCountry,
   isSubmitted = false,
+  initialValue = "",
+  label = "Phone",
+  optional = false,
 }: PhoneInputProps) {
   const intlTelInputRef = useRef(null);
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(false);
-  const [currentNumber, setCurrentNumber] = useState("");
+  const [currentNumber, setCurrentNumber] = useState(initialValue);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+
+  // Sync when initialValue changes from async fetch
+  useEffect(() => {
+    // Only update the internal instance if the new initialValue differs from our current local state.
+    // This prevents resetting the cursor position while the user is actively typing!
+    if (initialValue && initialValue !== currentNumber) {
+      setCurrentNumber(initialValue);
+      // Wait for next tick so IntlTelInput has time to initialize
+      const timer = setTimeout(() => {
+        if (intlTelInputRef.current) {
+          // @ts-expect-error - iti instance exposes setNumber
+          const iti = intlTelInputRef.current.getInstance();
+          if (iti) {
+            iti.setNumber(initialValue);
+            setIsValid(iti.isValidNumber());
+          }
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValue]);
 
   // Map library error codes to user-friendly messages
   const getErrorMessage = (code: string | null): string | null => {
@@ -54,18 +85,16 @@ export function PhoneInput({
   const handleNumberChange = useCallback(
     (number: string) => {
       setCurrentNumber(number);
-      onPhoneChange(number, isValid);
     },
-    [onPhoneChange, isValid],
+    [],
   );
 
   // Called by the library when the validity changes (requires utils)
   const handleValidityChange = useCallback(
     (valid: boolean) => {
       setIsValid(valid);
-      onPhoneChange(currentNumber, valid);
     },
-    [onPhoneChange, currentNumber],
+    [],
   );
 
   // Called by the library when the validation error code changes
@@ -76,12 +105,25 @@ export function PhoneInput({
     [],
   );
 
-  const showError =
-    !isValid && currentNumber.length > 0 && (touched || isSubmitted);
-  const errorMessage =
-    isSubmitted && currentNumber.length === 0
-      ? "Phone is required"
-      : getErrorMessage(errorCode);
+  const isEmpty = currentNumber.trim().length === 0;
+  const isRequiredError = !optional && isSubmitted && isEmpty;
+  const isValidationError = !isValid && !isEmpty && (touched || isSubmitted);
+  const showError = isRequiredError || isValidationError;
+
+  const errorMessage = isRequiredError
+    ? `${label} is required`
+    : getErrorMessage(errorCode);
+
+  const lastEmitted = useRef({ number: initialValue, valid: true });
+
+  // Sync the latest number and validity state to the parent safely
+  useEffect(() => {
+    const effectiveValidity = (optional && isEmpty) ? true : isValid;
+    if (lastEmitted.current.number !== currentNumber || lastEmitted.current.valid !== effectiveValidity) {
+      lastEmitted.current = { number: currentNumber, valid: effectiveValidity };
+      onPhoneChange(currentNumber, effectiveValidity);
+    }
+  }, [currentNumber, isValid, optional, isEmpty, onPhoneChange]);
 
   return (
     <div className="space-y-1 w-full">
@@ -89,7 +131,7 @@ export function PhoneInput({
         htmlFor="phone"
         className="block text-xs font-semibold text-glanz-gold dark:text-glanz-gold uppercase tracking-[3px]"
       >
-        Phone
+        {label}
       </label>
 
       {/* International Tel Input — dark/light theming via --iti-* vars in globals.css */}
@@ -105,25 +147,21 @@ export function PhoneInput({
           loadUtils={() => import("intl-tel-input/utils")}
           inputProps={{
             id: "phone",
+            defaultValue: initialValue,
             placeholder: "50 123 4567",
             maxLength: 15,
             autoComplete: "tel",
             onBlur: () => setTouched(true),
             className: `w-full bg-white dark:bg-glanz-black border rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-1 transition-all placeholder-midgray ${showError
-                ? "border-rose-500/80 focus:border-rose-500 focus:ring-rose-500"
-                : "border-slate-200 dark:border-charcoal focus:border-glanz-gold focus:ring-glanz-gold"
+              ? "border-rose-500/80 focus:border-rose-500 focus:ring-rose-500"
+              : "border-slate-200 dark:border-charcoal focus:border-glanz-gold focus:ring-glanz-gold"
               }`,
           }}
         />
       </div>
 
       {/* Show error: required on submit, or validation error after touch */}
-      {isSubmitted && currentNumber.length === 0 && (
-        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 pl-1 transition-all duration-200">
-          Phone is required
-        </p>
-      )}
-      {showError && errorMessage && (
+      {showError && (
         <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 pl-1 transition-all duration-200">
           {errorMessage}
         </p>

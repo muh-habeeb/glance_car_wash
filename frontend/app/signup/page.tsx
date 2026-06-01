@@ -57,20 +57,7 @@ export default function SignupPage() {
   // Redirect authenticated users to dashboard
   const { isLoading: isCheckingAuth } = useAuthRedirect("/dashboard");
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("error") === "missing_phone") {
-      setError({
-        whatHappened: "Registration Incomplete",
-        whyItHappened: "It seems you don't have an account, or you didn't provide a phone number during registration.",
-        whatToDoNext: "Please enter your phone number first before using social login.",
-      });
-      // Clean the URL without adding any history entries
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete("error");
-      window.history.replaceState(null, "", newUrl.toString());
-    }
-  }, []);
+
 
   // Form State
   const [name, setName] = useState("");
@@ -86,6 +73,8 @@ export default function SignupPage() {
   const [error, setError] = useState<ErrorDetail | null>(null);
   const [success, setSuccess] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+
 
   const isFormValid =
     nameSchema.safeParse(name).success &&
@@ -121,6 +110,7 @@ export default function SignupPage() {
 
       if (result.error) {
         setError(formatAuthError(result.error));
+        toast.error(result.error.message);
         return;
       }
 
@@ -129,7 +119,7 @@ export default function SignupPage() {
       );
       setTimeout(() => {
         router.push(`/login?email=${encodeURIComponent(email)}`);
-      }, 5000);
+      }, 4000);
     } catch (err: any) {
       setError(formatAuthError(err));
     } finally {
@@ -141,14 +131,6 @@ export default function SignupPage() {
   const isBusy = loading || socialLoading !== null;
 
   const handleSocialSignIn = async (provider: "google" | "facebook") => {
-    if (!isPhoneValid || phone.length === 0) {
-      toast.error("Phone number is required before using social login.");
-      return;
-    }
-
-    // Set phone in a short-lived cookie for the backend to read during OAuth callback
-    document.cookie = `social_signup_phone=${encodeURIComponent(phone)}; path=/; max-age=3600; SameSite=Lax`;
-
     try {
       setSocialLoading(provider);
       setError(null);

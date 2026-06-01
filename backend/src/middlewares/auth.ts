@@ -77,3 +77,37 @@ export const authorizedAsSuperAdmin = (
     res.status(403).json({ success: false, message: "Permission denied. Super Admins only." });
   }
 };
+
+/**
+ * Authorization middleware to restrict booking creation to USER role ONLY.
+ * Blocks STAFF, ADMIN, and SUPERADMIN from making bookings.
+ */
+export const authorizedAsUser = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  const userRole = (req.user as any)?.role;
+  if (req.user && userRole === "USER") {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Only customers can make bookings." });
+  }
+};
+
+/**
+ * Authorization middleware to allow STAFF, ADMIN, or SUPERADMIN.
+ * Blocks regular USERs from accessing staff/admin-only management routes.
+ */
+export const authorizedAsAdminOrStaff = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  const userRole = (req.user as any)?.role;
+  if (req.user && ["STAFF", "ADMIN", "SUPERADMIN"].includes(userRole)) {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Permission denied. Staff or Admins only." });
+  }
+};

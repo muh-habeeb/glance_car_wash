@@ -34,6 +34,7 @@ import { ValidatedInput } from "@/components/ui/ValidatedInput";
 import { ConfirmPasswordInput } from "@/components/ui/ConfirmPasswordInput";
 import { z } from "zod";
 import Field from "@/components/ui/Field";
+import { PhoneInput } from "@/components/PhoneInput";
 
 type Tab = "profile" | "security" | "danger";
 
@@ -44,56 +45,12 @@ interface ProfileDrawerProps {
   refetch?: () => void;
 }
 
-// function Field({
-//   label,
-//   value,
-//   onChange,
-//   type = "text",
-//   placeholder,
-//   disabled,
-//   icon: Icon,
-//   hidden,
-// }: {
-//   label: string;
-//   value: string;
-//   onChange: (v: string) => void;
-//   type?: string;
-//   placeholder?: string;
-//   disabled?: boolean;
-//   icon?: any;
-//   hidden?: boolean;
-// }) {
-//   return (
-//     <div className="space-y-1 w-full text-left">
-//       <label className="block text-xs font-semibold text-slate-600 dark:text-cream uppercase tracking-wider">
-//         {label}
-//       </label>
-//       <div className="relative rounded-xl overflow-hidden">
-//         {Icon && (
-//           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-midgray">
-//             <Icon className="w-4 h-4" />
-//           </div>
-//         )}
-//         <input
-//           type={type}
-//           value={value}
-//           onChange={(e) => onChange(e.target.value)}
-//           placeholder={placeholder}
-//           disabled={disabled}
-//           hidden={hidden}
-//           className={`w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-glanz-gold focus:ring-1 focus:ring-glanz-gold transition-all placeholder-midgray disabled:opacity-40 disabled:cursor-not-allowed ${Icon ? "pl-10 pr-4" : "px-4"}`}
-//         />
-//       </div>
-//     </div>
-//   );
-// }
 
 const delPasswordSchema = z
   .string()
   .min(1, "Password is required")
   .min(8, "Password must be at least 8 characters");
 const emailSchema = z
-  .string()
   .email("Invalid email address")
   .refine(
     (email) => {
@@ -145,8 +102,11 @@ export function ProfileDrawer({
   // Profile forms
   const [pName, setPName] = useState(user?.name || "");
   const [pPhone, setPPhone] = useState(user?.phone || "");
+  const [pPhoneValid, setPPhoneValid] = useState(true);
   const [pWhatsapp, setPWhatsapp] = useState(user?.whatsapp || "");
+  const [pWhatsappValid, setPWhatsappValid] = useState(true);
   const [pLoading, setPLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [profileAlert, ProfileAlertContainer] = useAlert();
   const [securityAlert, SecurityAlertContainer] = useAlert();
   const [emailAlert, EmailAlertContainer] = useAlert();
@@ -176,7 +136,7 @@ export function ProfileDrawer({
             setPrevUser({ ...user, ...data.user }); // Merge so hasChanges calculates correctly
           }
         })
-        .catch(err => console.error("Failed to load full profile", err));
+        .catch(err => console.error("[ProfileDrawer] Failed to load full profile", err));
     }
   }, [isOpen, user?.id]);
 
@@ -186,8 +146,8 @@ export function ProfileDrawer({
     pWhatsapp !== (user?.whatsapp || "");
 
   const isProfileValid = 
-    phoneSchema.safeParse(pPhone).success && 
-    whatsappSchema.safeParse(pWhatsapp).success &&
+    pPhoneValid && 
+    pWhatsappValid &&
     pName.trim().length >= 2;
 
   // Change password forms
@@ -206,6 +166,7 @@ export function ProfileDrawer({
 
   const handleProfileSave = async (e: React.SubmitEvent) => {
     e.preventDefault();
+    setIsSubmitted(true);
     setPLoading(true);
     profileAlert.clear();
     try {
@@ -214,9 +175,17 @@ export function ProfileDrawer({
       if (pPhone && pPhone !== user.phone) body.phone = pPhone;
       if (pWhatsapp !== user.whatsapp) body.whatsapp = pWhatsapp;
 
+      if (!isProfileValid) {
+        profileAlert.error("Please provide valid information for all fields.", 5);
+        toast.error("Please provide valid information for all fields.");
+        setPLoading(false);
+        return;
+      }
+
       if (Object.keys(body).length === 0) {
         profileAlert.error("No changes detected.", 5);
         toast.error("No changes detected.");
+        setPLoading(false);
         return;
       }
 
@@ -564,45 +533,28 @@ export function ProfileDrawer({
                         icon={User}
                       />
 
-                      <ValidatedInput
+                      <PhoneInput
                         label="Phone Number"
-                        value={pPhone}
-                        schema={phoneSchema}
-                        isSubmitted={false}
-                      >
-                        <input
-                          type="tel"
-                          value={pPhone}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (/^[+\d]*$/.test(val)) setPPhone(val);
-                          }}
-                          placeholder="+1234567890"
-                          pattern="^\+\d{3,14}$"
-                          title="Must start with country code (+code) and enter a valid number"
-                          className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
-                        />
-                      </ValidatedInput>
+                        initialValue={pPhone}
+                        onPhoneChange={(number, isValid) => {
+                          setPPhone(number);
+                          setPPhoneValid(isValid);
+                        }}
+                        onChangeCountry={() => {}}
+                        isSubmitted={isSubmitted}
+                      />
 
-                      <ValidatedInput
+                      <PhoneInput
                         label="WhatsApp Number (Optional)"
-                        value={pWhatsapp}
-                        schema={whatsappSchema}
-                        isSubmitted={false}
-                      >
-                        <input
-                          type="tel"
-                          value={pWhatsapp}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (/^[+\d]*$/.test(val)) setPWhatsapp(val);
-                          }}
-                          placeholder="+1234567890"
-                          pattern="^\+\d{3,14}$"
-                          title="Must start with country code (+code) and enter a valid number"
-                          className="w-full bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none transition-all placeholder-midgray"
-                        />
-                      </ValidatedInput>
+                        initialValue={pWhatsapp}
+                        onPhoneChange={(number, isValid) => {
+                          setPWhatsapp(number);
+                          setPWhatsappValid(isValid);
+                        }}
+                        onChangeCountry={() => {}}
+                        isSubmitted={isSubmitted}
+                        optional={true}
+                      />
 
                       {/* Status Check inside Drawer */}
                       <div className="bg-white dark:bg-glanz-black border border-slate-200 dark:border-charcoal/60 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs">

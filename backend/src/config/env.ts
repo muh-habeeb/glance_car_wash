@@ -90,7 +90,10 @@ export const env = createEnv({
     SMTP_PORT: z.string().default("587"),
     SMTP_USER: z.email(),
     SMTP_PASS: z.string().min(1),
-    SUPPORT_EMAIL: z.email()
+    SUPPORT_EMAIL: z.email(),
+
+    // Stripe
+    STRIPE_SECRET_KEY: z.string().min(1),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
